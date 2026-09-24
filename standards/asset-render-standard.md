@@ -43,7 +43,8 @@ name one, the task is Judged.
 0. **Rendering is not approval.** Nino Chavez approves before a coworker or anyone outside the
    repo sees an asset. A local render is a draft.
 1. **People and personal data.** No tester address, phone, email, card digits, account picture, or
-   Claude chat titles may be readable in any frame. Blur them in the stills before rendering. A first
+   the list of the tester's other Claude chats may be readable in any frame. The test chat's own
+   title and the Buy link's `uuld=` location parameter are allowed. Blur them in the stills before rendering. A first
    name in a greeting is allowed.
 2. **Money.** Only amounts observed in the recorded run may appear, and captions must match the
    frames they sit on. The source is the run's own chat result and the merchant's checkout page in
