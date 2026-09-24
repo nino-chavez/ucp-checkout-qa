@@ -1,0 +1,5 @@
+# Local test inputs and outputs. Keep address files outside this repo too.
+*address*.json
+!skills/ucp-checkout-qa/examples/address.example.json
+ucp-qa-*/
+runs/

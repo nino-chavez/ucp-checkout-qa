@@ -62,7 +62,11 @@ export class Page {
     });
     await this.s('Page.enable'); await this.s('Runtime.enable');
   }
-  async goto(url, settleMs = 8000) { await this.s('Page.navigate', { url }); await sleep(settleMs); }
+  async goto(url, settleMs = 8000) {
+    const result = await this.s('Page.navigate', { url });
+    if (result.errorText) throw new Error(`navigation failed: ${result.errorText}`);
+    await sleep(settleMs);
+  }
   async close() { try { await this.b.send('Target.closeTarget', { targetId: this.targetId }); } catch {} }
   async frames() {
     const { frameTree } = await this.s('Page.getFrameTree');

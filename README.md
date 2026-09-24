@@ -8,6 +8,7 @@ Use it each time new merchants or products join the BigCommerce and Google UCP i
 
 - Checks your setup: an allowlisted Google account, a headed browser, and no pending Chrome sign-in prompt.
 - Reads Buy links from a Google Sheet export or a plain list.
+- Scans every distinct product link before checkout and keeps blocked links in the report.
 - Captures Google order review three times over 30 seconds.
 - Runs the $0-shipping sequence when needed: reselect, switch, switch back, and a fresh Buy.
 - Quotes the same item, address, and methods on the native BigCommerce storefront in a guest context.
@@ -33,4 +34,4 @@ The full procedure is in [`skills/ucp-checkout-qa/SKILL.md`](skills/ucp-checkout
 
 ## Data handling
 
-Keep the tester's address file outside the repo; the `.gitignore` blocks it. Script output redacts address, phone, and email. Never commit a run directory.
+Keep the tester's address file and run directory outside the repo. The `.gitignore` catches common local filenames, but cannot protect files stored elsewhere or under arbitrary names. Script output redacts address, phone, and email; review the generated files before sharing them.
