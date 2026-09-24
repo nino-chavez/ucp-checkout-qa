@@ -44,7 +44,7 @@ There are two ways to run the same test. Pick by who is running it.
 
 ### Chrome runner
 
-**Current pilot:** [v0.1.0-pilot.1](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.1). Its release notes list the known limits.
+**Current pilot:** [v0.1.0-pilot.2](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2). Its release notes list the known limits.
 
 1. Add **Claude in Chrome** to Chrome, in a separate Chrome profile such as "UCP testing". Keeping it apart from your own shopping avoids old merchant carts.
 2. In that profile, sign in to the Google account approved for your UCP test program (the allowlist).
@@ -113,7 +113,7 @@ For initial $0 shipping, the test reselects the method, switches away and back, 
 
 ## Current limits
 
-These issues remain open in the merged runners. The three Chrome-runner issues listed in the v0.1.0-pilot.1 release notes are fixed on `main` and ship in the next release.
+These issues remain open in the merged runners.
 
 | Runner | Open issue | Required correction |
 |---|---|---|
