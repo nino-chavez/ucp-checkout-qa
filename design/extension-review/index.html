@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout QA — extension design review</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <header class="review-header">
+    <div class="review-brand"><span class="brand-mark" aria-hidden="true">Q</span><span>Checkout QA <span class="muted">/ Design review</span></span></div>
+    <a href="../../decisions/browser-extension-plan.md">Read the build plan</a>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">Optional custom interface · design review</p><h1 id="page-title">Run the test where the product is.</h1><p class="lead">First, prove the workflow in Claude Desktop and Claude in Chrome. These layouts show what a custom interface could add if product selection, batches, or reviewing results still needs work.</p></div>
+      <aside class="recommendation"><strong>Recommended: A · Beside the page</strong><p>Keep the product in view. Open a wider results view when a batch needs more room.</p><span>Design choice pending your review</span></aside>
+    </section>
+    <nav class="concepts" aria-label="Design concepts">
+      <button data-concept="panel" aria-pressed="true"><b>A <span>Beside the page</span></b><small>Start and inspect in a side panel</small></button>
+      <button data-concept="workspace" aria-pressed="false"><b>B <span>Batch workspace</span></b><small>Manage products in a full-tab table</small></button>
+      <button data-concept="guide" aria-pressed="false"><b>C <span>Guided run</span></b><small>Follow one step at a time</small></button>
+    </nav>
+    <div class="review-tools">
+      <div class="state-picker" role="group" aria-label="Preview state">
+        <span>Preview</span><button data-view="setup" aria-pressed="true">Start</button><button data-view="running" aria-pressed="false">In progress</button><button data-view="issue" aria-pressed="false">Finding</button><button data-view="blocked" aria-pressed="false">Needs input</button><button data-view="report" aria-pressed="false">Report</button>
+      </div>
+      <span class="mock-label">Mock — synthetic data</span>
+    </div>
+    <p class="mock-explainer">All products, amounts, results, and connection states below are invented. This preview does not run tests, connect an agent, or write to Google. The first pilot uses Claude for progress and questions; a connected panel is a later option.</p>
+    <section id="preview" class="preview" aria-label="Interactive extension concept"></section>
+    <section class="comparison" aria-labelledby="comparison-title">
+      <h2 id="comparison-title">Same job. Three ways to work.</h2>
+      <div class="comparison-grid">
+        <article><h3>A · Beside the page</h3><p>Best for “test this product.” You can see what the agent is inspecting. A long batch needs the expanded results view.</p><p class="takeaway">Recommended starting point</p></article>
+        <article><h3>B · Batch workspace</h3><p>Best for comparing many products. The queue and evidence share a screen. It takes you away from the shopping page.</p><p class="takeaway">Borrow its results table for A</p></article>
+        <article><h3>C · Guided run</h3><p>Best for a first run. Each step has one decision. Frequent testers would make more clicks to inspect a batch.</p><p class="takeaway">Borrow its missing-input prompts for A</p></article>
+      </div>
+    </section>
+    <section class="review-scope"><h2>What this review decides</h2><p>If a custom interface is needed, compare where product selection, evidence, questions, and reports belong. The plan first checks whether a shared skill in Claude already meets the need.</p><p><strong>Google constraint:</strong> no custom Google Cloud project, OAuth app, or service account. Test the built-in Drive connector's conversion and formatting; retain signed-in Docs and Sheets publishing as a fallback.</p></section>
+  </main>
+  <dialog id="detail-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button id="close-dialog" aria-label="Close detail">Close</button></div><div id="dialog-body"></div></dialog>
+  <div id="announcement" class="sr-only" aria-live="polite"></div>
+  <script src="review.js"></script>
+</body>
+</html>

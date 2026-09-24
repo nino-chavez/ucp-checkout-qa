@@ -4,9 +4,11 @@ Test Google UCP (Universal Commerce Protocol) Buy links against a merchant's own
 
 **Stops at order review, before payment.** Use this agent skill when onboarding merchants, adding products, or retesting reported issues.
 
-[First run](#first-run) · [Chrome runner](#chrome-runner) · [Checks](#checks) · [Cost estimates](#cost-estimates) · [ROI estimates](#roi-estimates)
+[First run](#first-run) · [Chrome runner](#chrome-runner) · [Distribution](#distribution) · [Current limits](#current-limits) · [Cost estimates](#cost-estimates) · [ROI estimates](#roi-estimates)
 
 ## Reports
+
+The command-line runner saves local files:
 
 ```text
 run directory/
@@ -15,11 +17,13 @@ run directory/
 └── flags.json  Detected mismatches
 ```
 
-The scan includes blocked pages; the comparison links to the product pages. The scripts also save each checkout's observations. Your agent adds verdicts against prior claims, likely owners, confidence, limits, and sheet-ready notes. Matching totals alone do not prove matching shipping methods.
+The scan includes blocked pages; the comparison links to the product pages. The scripts also save each checkout's observations. The Chrome runner records readings in chat and can create a new Google Doc and Sheet when requested. Both routes add verdicts against prior claims, likely owners, confidence, limits, and sheet-ready notes. Matching totals alone do not prove matching shipping methods.
 
-**Validation status:** parser and report regression tests pass; exploratory-run token usage was measured. The packaged end-to-end workflow still needs an authenticated live run. Its cost, time saved, and ROI remain unmeasured.
+**Validation status:** the CLI's 17 regression tests pass. One Chrome proof matched Google and native quotes and verified synthetic Google reports after saving. It was not a coworker test of the installed skill. Repeat runs, recovery, and the [current limits](#current-limits) still need work before handoff. Packaged-run cost, time saved, and ROI remain unmeasured.
 
 ## First run
+
+Start from this private repository for setup, installation, downloads, and updates. Both routes require a GitHub account with repo access. If this page shows a 404, sign in to the invited account and accept the repository invitation.
 
 There are two ways to run the same test. Pick by who is running it.
 
@@ -27,29 +31,35 @@ There are two ways to run the same test. Pick by who is running it.
 |---|---|---|
 | Who | CSMs, PMs, anyone who works in Claude desktop or the browser | Someone comfortable in a terminal |
 | Install | Claude in Chrome, the Google Drive connector, and this skill | Node 22+, browse-tool, Chrome for Testing, and this skill |
-| Reads Google's order review | From screenshots, because the review sits in a pay.google.com frame that page text can't reach | As text from that frame, at fixed 5, 15, and 30 second marks |
-| Native cart | The tester's own Chrome profile, so the cart is checked before adding and emptied after | A fresh guest browser context each time |
+| Reads Google's order review | Screenshots in the recorded proof; top-page text did not expose the review frame | Text from the review frame, at about 5, 15, and 30 seconds |
+| Native cart | The tester's Chrome profile; cleanup needs correction before handoff | A fresh guest browser context each time |
 | Hiding personal details | Claude follows the runbook rules; nothing redacts automatically | Scripts redact address, phone, and email |
-| Reports | New Google Doc and Sheet through the Drive connector | Local files; a person pastes into Google |
+| Reports | Chat by default; new Google Doc and Sheet through the Drive connector when requested | Local files; a person pastes into Google |
 | Link input | Pasted links or the open product page | The `.xlsx` sheet export, including `HYPERLINK()` cells |
 | Account check | Claude looks for Buy and asks you to fix the account | `preflight` finds the account number and Chrome's pending prompts |
 | Mismatch flags | Claude applies the protocol's checks by judgment | `report` computes them the same way every run (`flags.json`) |
-| Tests | None; the runbook was proven by hand on one product | 17 regression tests |
-| Cost | Not measured. Several screenshots per product, so likely higher | Forecast below |
+| Tests | One recorded product proof; no automated Chrome tests | 17 regression tests |
+| Cost | Not measured | CLI forecast below |
 | Best for | One product, a short list, and investigating a finding while you test | Large batches, repeat runs, and a second check on a screen-read number |
 
 ### Chrome runner
 
+**Pilot download pending:** no release is published as of September 24, 2026. These installation steps apply once a pilot asset appears in [Releases](https://github.com/nino-chavez/ucp-checkout-qa/releases).
+
 1. Add **Claude in Chrome** to Chrome, in a separate Chrome profile such as "UCP testing". Keeping it apart from your own shopping avoids old merchant carts.
 2. In that profile, sign in to the Google account approved for your UCP test program (the allowlist).
-3. In Claude, turn on the **Google Drive** connector and add this skill. The repo owner can send you the skill folder as a zip.
-4. Open a Google Shopping product page and ask:
+3. In Claude, turn on the **Google Drive** connector. Enable **Code execution and file creation** for skills.
+4. Open this repo's **Releases** page, choose the pilot release, and download `ucp-checkout-qa.zip` from **Assets**. GitHub's **Source code** archives contain the whole repo; they are not the skill installer.
+5. In Claude, open **Customize > Skills**, choose **+ Create skill**, then **Upload a skill**. Upload the downloaded file and enable `ucp-checkout-qa`. See [Claude's skill installation guide](https://support.claude.com/en/articles/12512180-use-skills-in-claude) if the controls differ.
+6. Open a Google Shopping product page and ask:
 
 > Use ucp-checkout-qa on this product. Stop before payment.
 
 For a list, paste the Buy links instead, with any sheet row labels. Claude asks for anything it needs, including your shipping details and where to save the reports. Claude in Chrome asks you to allow each site the first time.
 
 Whether your organization lets CSM and PM accounts use Claude in Chrome, the Drive connector, and uploaded skills has not been confirmed. Check with the Claude admin before rollout.
+
+For updates, return to **Releases**, read the changes and known limits, and install the new asset using the same steps. Disable the older copy if both appear. Keep the release tag with your test report so a reviewer knows which instructions you used. Downloading an update does not install it in Claude.
 
 ### Command-line runner
 
@@ -67,11 +77,27 @@ Then give your agent a Google Sheet export (`.xlsx`) or Buy-link list:
 
 The skill asks for the allowlisted email and authorized checkout details: name, destination address, phone, and email. You can narrow the rows or provide earlier claims to verify. Shared sheet or Google Doc updates require an explicit request.
 
-### Package the skill for Claude
+## Distribution
+
+This repository owns setup, installation, and distribution. Share the repo link with coworkers. Keep source, instructions, version history, and downloadable installers here; do not send ZIPs through chat, email, or a separate file share.
+
+Claude's upload format is a ZIP. Publish that file as a versioned asset in this private repo's **Releases**. Testers download and upload it through the browser; packaging commands are for maintainers only. Repo read access also covers releases. [GitHub release access](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
+
+### Release preparation
+
+From the repo root, build from the reviewed commit you intend to tag:
 
 ```bash
-mkdir -p dist && cd skills && zip -r ../dist/ucp-checkout-qa.zip ucp-checkout-qa -x '*/.DS_Store'
+git rev-parse HEAD
+mkdir -p dist
+git archive --format=zip --prefix=ucp-checkout-qa/ --output=dist/ucp-checkout-qa.zip HEAD:skills/ucp-checkout-qa
+unzip -t dist/ucp-checkout-qa.zip
+shasum -a 256 dist/ucp-checkout-qa.zip
 ```
+
+Only committed skill files enter the archive. Check that it contains `ucp-checkout-qa/SKILL.md` and its referenced files. Run the relevant checks, then attach the archive to a release targeting that same commit. Mark pilot releases as prereleases.
+
+Release notes must name the source commit, archive checksum, changes, checks performed, and known limits. Verify a downloaded copy matches before sharing the repo link. Remove the pending-download notice above when the first pilot release is published. Keep report output and shopper details out of release assets.
 
 ## Checks
 
@@ -83,13 +109,26 @@ mkdir -p dist && cd skills && zip -r ../dist/ucp-checkout-qa.zip ucp-checkout-qa
 | Native checkout | Same item and destination; shipping methods, tax, and totals |
 | Report | Evidence links, mismatches, blocked rows, and unresolved questions |
 
-For initial $0 shipping, the test reselects the method, switches away and back, then opens a fresh Buy. The command-line runner quotes native checkout in an isolated guest cart; the Chrome runner uses the tester's profile and empties the cart afterwards. Owner assignments follow the [routing guide](skills/ucp-checkout-qa/references/owner-routing.md); a checkout observation alone may not identify the responsible system.
+For initial $0 shipping, the test reselects the method, switches away and back, then opens a fresh Buy. The command-line runner quotes native checkout in an isolated guest cart; the Chrome runner uses the tester's profile. Owner assignments follow the [routing guide](skills/ucp-checkout-qa/references/owner-routing.md); a checkout observation alone may not identify the responsible system.
+
+## Current limits
+
+These issues remain open in the merged runners. The distribution instructions do not fix them.
+
+| Runner | Open issue | Required correction |
+|---|---|---|
+| Chrome | Cleanup deletes every physical cart item, including an unrelated item added during the run | Delete only items created by the test |
+| Chrome | The runbook treats **Visit site** as proof of an account problem | Check the account; leave unresolved Buy absence blocked |
+| Chrome | The normal native comparison uses API quotes without a rendered checkout summary | Read the selected method and totals on the page, or label the comparison API-only |
+| Command line | Buy selection uses the first matching button; native quantity is fixed at 1 | Verify the selected offer and stop on unsupported quantities before comparing |
+
+The [build plan](decisions/browser-extension-plan.md) records the evidence and remaining pilot checks. The [design files](design/extension-review/index.html) show an optional custom interface with synthetic data. No custom extension has been built.
 
 ## Cost estimates
 
 Use **Claude Sonnet**, or **GPT-5.6 Terra with high effort**, for recurring browser tests. Reserve **Claude Opus**, or **GPT-5.6 Sol with high effort**, for an independent adversarial retest. This follows our Operator model-routing tool's `balance` policy. These recommendations are not comparative accuracy benchmarks; this skill does not switch models itself.
 
-**Forecast: one batch of 12 distinct product links.** Prices are USD at standard token rates, checked September 23, 2026. These figures exclude cache-write premiums, separate tool fees, taxes, and subscriptions. They are not invoices.
+**CLI forecast: one batch of 12 distinct product links.** This forecast does not cover the Chrome runner. Prices are USD at standard token rates, checked September 24, 2026. These figures exclude cache-write premiums, separate tool fees, taxes, and subscriptions. They are not invoices.
 
 | Model | Role | Estimated token cost / batch |
 |---|---|---:|
@@ -200,7 +239,7 @@ For the next batch, record human preparation, supervision, review, and correctio
 - Native checkout receives the authorized shopper details. The optional rendered-method check submits email and can leave an abandoned-cart record.
 - Keep address files and run directories outside this repo. `.gitignore` catches common filenames, not arbitrary ones.
 - Scripts redact supplied address, phone, and email. Review reports and crop screenshots before sharing.
-- The Chrome runner's order-review screenshots show the tester's address, phone, and card ending. It reads them without saving them, and they never go into a report.
+- Chrome order-review screenshots can show the tester's address, phone, and card ending. The runbook forbids saving or sharing them; no automatic redactor enforces that rule.
 - Chrome-runner totals are read from the screen. They matched the command-line run to the cent on one product (September 23, 2026). Recheck any screen-read number a finding depends on.
 
 Use the [full procedure](skills/ucp-checkout-qa/SKILL.md) for commands and inputs, and the [report protocol](skills/ucp-checkout-qa/references/protocol.md) for the final writeup.
