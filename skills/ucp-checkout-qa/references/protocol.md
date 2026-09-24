@@ -19,6 +19,22 @@ The scripts collect evidence. This file covers what the agent decides with it.
 | `native.perMethod` | The merchant's own quote for every method, same address and quantity 1 |
 | `native.renderedSummary` | The native checkout page, left on `--method`, as a cross-check on the API numbers |
 
+## Evidence labels
+
+Label every statement in the report with where it came from:
+- **Observed in this run**: you saw it in a result file or on the page during this run.
+- **Reported in an existing note**: a sheet note, a teammate's findings, or a service-log quote you did not inspect yourself.
+- **Inferred**: your reasoning from the above. Never present an inference or a quoted note as something you checked.
+
+## Reading the rendered native method list
+
+The API method list (`native.methods`) is usually enough. When it disagrees with Google's list, confirm it on the rendered page, because a correction rests on it:
+1. Open the product URL in a guest browser window and add the same variant, quantity 1.
+2. Open `/checkout`. At the customer step, **uncheck "Subscribe to our newsletter"** (it is pre-checked), enter the authorized email, and continue. Do not create an account.
+3. Fill the shipping address with the same destination. The method list appears under it.
+4. Record every method name and price, then empty the cart.
+5. In the report, note that the guest email is now attached to an abandoned checkout.
+
 ## Verdict vocabulary (for prior claims)
 
 - **Reproduced**: your observation matches the claim.
@@ -45,4 +61,4 @@ Split a compound claim into parts and give each part its own verdict.
 - That the run stopped before payment.
 - The rows that were not tested.
 - Whether native method lists came from the rendered page or only from the API.
-- Any side effects, such as a guest email attached to an abandoned checkout when `--rendered-methods` was used.
+- Any side effects, such as a guest email attached to an abandoned checkout after a manual rendered-list check.
