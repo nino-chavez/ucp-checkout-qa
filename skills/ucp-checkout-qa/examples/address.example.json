@@ -1,0 +1,11 @@
+{
+  "first_name": "Test",
+  "last_name": "Shopper",
+  "address1": "123 Example St",
+  "city": "Aurora",
+  "state_or_province_code": "IL",
+  "postal_code": "60504",
+  "country_code": "US",
+  "phone": "5555550100",
+  "email": "you@commerce.com"
+}

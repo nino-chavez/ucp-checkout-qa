@@ -1,0 +1,60 @@
+---
+name: ucp-checkout-qa
+description: Verify Google UCP (Universal Commerce Protocol) Buy links for BigCommerce merchants end to end through order review, compare product, shipping, tax, and totals against the merchant's native BigCommerce checkout, and produce a row-by-row report with likely owner (Google, BC, feed, or merchant setting). Use when onboarding new UCP merchants or products, retesting a UCP testing sheet, independently verifying someone else's UCP test notes, or when asked why a Google Buy flow shows the wrong shipping, tax, total, or an eligibility error. Stops before payment.
+allowed-tools: Read, Write, Bash, Grep, Glob
+---
+
+# UCP checkout QA
+
+Test Google UCP Buy links the way a shopper sees them, compare every number with the merchant's own BigCommerce checkout, and report what matches, what doesn't, and who most likely owns each problem.
+
+**Hard boundaries.** Stop at order review, and never click a pay or place-order control. Don't change payment details, create accounts, or subscribe to marketing. Don't edit a shared sheet or doc unless the user says so, and then append instead of overwriting. Keep the tester's address, phone, email, and card out of anything shared. The scripts redact these automatically, and screenshots must be cropped.
+
+## Setup (once per machine)
+
+1. Node 22 or newer.
+2. [browse-tool](https://github.com/nino-chavez/browse-tool): clone it, `npm install`, put `bin/` on PATH, and install Chrome for Testing as its README describes.
+3. Run `browse-start` **headed**, without `--headless`. In that Chrome window, sign in to the Google account that is on the UCP allowlist, and dismiss any "Separate browsing?" prompt by staying in this profile.
+
+## Inputs — ask for any that are missing
+
+| Input | Notes |
+|---|---|
+| Buy links | Sheet export (`.xlsx`: download the Google Sheet; `HYPERLINK()` formulas are parsed), or a text file / pasted list of `google.com/search?…ibp=oshop…` URLs |
+| Rows to test | e.g. `4,8-9,11-17`; default is all rows with a link |
+| Tester's allowlisted Google email | Used only to find the right `authuser` index |
+| Destination address | Write it to a local JSON file outside the repo. Shape: `examples/address.example.json` |
+| Prior claims to verify (optional) | Existing sheet notes or another tester's findings. Treat them as hypotheses, not evidence |
+| Write back? | Default: report in chat only. Update the sheet or doc only with explicit approval, and only for materially new findings |
+
+## Workflow
+
+```bash
+Q=<skill-dir>/scripts/ucpqa.mjs; OUT=./ucp-qa-$(date +%F); ADDR=~/ucp-qa-address.json
+node $Q preflight --email you@commerce.com --probe "<one Buy link>"   # must end "ready": true; note authuser
+node $Q links sheet.xlsx --tab "Commerce Internal Testing" --rows 4,8-17 > $OUT-links.json
+# for each distinct docid (rows sharing a link are tested once):
+node $Q google "<buy url>" --authuser 1 --label row12 --address $ADDR --out $OUT
+node $Q native "<offer.merchantUrl from the google result>" --label row12 --method "<initial.method>" --address $ADDR --out $OUT
+node $Q report $OUT        # writes $OUT/report.md + flags.json
+```
+
+1. **Preflight** must pass before anything else. If "Visit site only" shows up for a link, check the account before calling it a defect.
+2. **Google** for each link. The script records the offer and the listing estimate, clicks Buy, and reads order review at about 5, 15, and 30 seconds. When the first shipping charge is $0 it runs reselect → switch → switch back → fresh Buy. It retries "couldn't complete your purchase" once and keeps both attempts. Pass `--alt "<method>"` to choose the switch target, and `--price-methods` to price every method.
+3. **Native** only when Google reached order review. It runs in an isolated guest browser context: it adds the same variant through `?sku=` from Google's merchant link, gets a quote for the same address from the Storefront API for every method, reads the rendered checkout summary, and empties the cart. Add `--rendered-methods` only when the method lists differ. That runs the email step with the newsletter box unchecked, which leaves an abandoned-cart trail.
+4. **Report**: `report.md` holds the mechanical flags. You then write the judgment layer described in [references/protocol.md](references/protocol.md): verdicts against prior claims, new findings, and limits. Assign a likely owner with [references/owner-routing.md](references/owner-routing.md).
+
+## Deliverable
+
+Lead with the answer: what reproduced, what was contradicted, what's new. Then give:
+- A row table: initial Google, after workaround, native, flags.
+- One verdict per prior claim: reproduced, contradicted, not reproduced, or blocked.
+- Likely owner and confidence per issue.
+- Limits.
+- Short sheet-ready notes.
+
+Report a listing estimate (from the link's `uuld=` location) separately from an addressed checkout quote. Never mark a merchant "transaction-successful". This test ends before payment.
+
+## When a script fails
+
+Scripts stop with `selector not found: …` when Google or a theme changes its markup. Fix the selector in `scripts/ucpqa.mjs` and don't guess values. Non-Stencil storefronts may lack `#form-action-addToCart`. For those, add the item by hand in the isolated window.
