@@ -44,6 +44,8 @@ The API method list (`native.methods`) is usually enough. When it disagrees with
 
 Split a compound claim into parts and give each part its own verdict.
 
+When no prior claims were supplied, don't use these words at all. Write "No prior claims supplied" in place of a verdict, in chat, the Doc, and the Sheet. A matching comparison is a result, not a reproduction.
+
 ## Traps seen in live runs
 
 - **Visit site instead of Buy** usually means the account isn't on the UCP allowlist. Preflight probes for it.
