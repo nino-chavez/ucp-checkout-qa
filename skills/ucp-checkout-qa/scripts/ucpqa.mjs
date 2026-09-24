@@ -231,7 +231,7 @@ async function native() {
     await p.goto(url, 7000);
     res.origin = await p.eval('return location.origin');
     res.cartBefore = await p.eval(`const c=await fetch('/api/storefront/carts',{credentials:'include'}).then(r=>r.json()).catch(()=>null); return Array.isArray(c)?c.map(x=>x.lineItems.physicalItems.map(i=>i.sku+' x'+i.quantity)).flat():'not a BigCommerce storefront API response'`);
-    res.product = await p.eval(`const chk=[...document.querySelectorAll('form[data-cart-item-add] input[type=radio]:checked')].map(e=>document.querySelector('label[for="'+e.id+'"]')?.innerText?.trim()); const sel=[...document.querySelectorAll('form[data-cart-item-add] select')].map(s=>s.options[s.selectedIndex]?.text); return { title:document.querySelector('h1')?.innerText?.trim(), price:document.querySelector('.price--withoutTax')?.innerText?.trim(), selectedOptions:[...chk,...sel].filter(Boolean) }`);
+    res.product = await p.eval(`const chk=[...document.querySelectorAll('form[data-cart-item-add] input[type=radio]:checked')].map(e=>document.querySelector('label[for="'+e.id+'"]')?.innerText?.trim()); const sel=[...document.querySelectorAll('form[data-cart-item-add] select')].map(s=>s.options[s.selectedIndex]?.text); const optionFields=new Set([...document.querySelectorAll('form[data-cart-item-add] [name^="attribute["]')].map(e=>e.name)).size; return { title:document.querySelector('h1')?.innerText?.trim(), price:document.querySelector('.price--withoutTax')?.innerText?.trim(), selectedOptions:[...chk,...sel].filter(Boolean), optionFields }`);
     const added = await p.eval(`const q=document.querySelector('input[name="qty[]"]'); if(q) q.value='1'; const b=document.querySelector('#form-action-addToCart'); if(!b) return false; b.click(); await new Promise(r=>setTimeout(r,5000)); return true;`);
     if (!added) throw new Error('selector not found: #form-action-addToCart (non-Stencil theme: add the item by hand in an isolated window and quote it there)');
     const quote = await p.eval(`
@@ -291,9 +291,14 @@ function report() {
     const cmp = (gr) => { const nv = gr && n?.perMethod?.[gr.method]; if (!gr || !nv) return; if (Math.abs(gr.total - nv.total) > 0.005 || Math.abs(gr.tax - nv.tax) > 0.005) f.push(`${gr.method}: Google ${money(gr.total)} vs native ${money(nv.total)} (tax ${money(gr.tax)} vs ${money(nv.tax)})`); };
     if (init?.shipping !== 0) cmp(init); cmp(back); cmp(g?.steps?.switch);
     if (g?.methodPrices) for (const r of Object.values(g.methodPrices)) cmp(r);
-    if (n?.items?.length && init?.itemPrice && Math.abs(parseMoney(init.itemPrice) - Number(n.items[0].price)) > 0.005) f.push(`item price differs: Google ${init.itemPrice} vs native $${n.items[0]?.price}`);
-    const linkUrl = n?.url || g?.offer?.merchantUrl;
-    if (n && linkUrl && !/[?&]sku=/.test(linkUrl)) f.push('variant not pinned: the merchant link has no sku=, so confirm the native cart item matches the Google offer');
+    if (n?.items?.length && init?.itemPrice) {
+      const gp = parseMoney(init.itemPrice);
+      if (!Number.isFinite(gp)) f.push(`item price unreadable on Google: "${init.itemPrice}"`);
+      else if (Math.abs(gp - Number(n.items[0].price)) > 0.005) f.push(`item price differs: Google ${init.itemPrice} vs native $${n.items[0]?.price}`);
+    }
+    // Only a product with option fields can land on the wrong variant. Older result files have no
+    // optionFields, so an unknown count is treated as "has options".
+    if (n?.url && !/[?&]sku=/.test(n.url) && (n.product?.optionFields ?? 1) > 0) f.push('variant not pinned: the native URL has no sku= and the product has options, so confirm the cart item matches the Google offer');
     const requestedSku = n?.url && new URL(n.url).searchParams.get('sku');
     if (requestedSku && n?.items?.length && !n.items.some((item) => item.sku === requestedSku)) f.push(`native cart SKU differs from product link: requested ${requestedSku}; cart ${n.items.map((item) => item.sku).join(', ')}`);
     if (n && !n.error && !n.items?.length) f.push('native cart item not verified');

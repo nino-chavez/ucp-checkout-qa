@@ -106,7 +106,7 @@ test('a merchant link without sku= is flagged as an unpinned variant', () => {
       offer: { merchantUrl: 'https://merchant.example/item' },
       initial: { method: 'Ground', itemPrice: '$5.95', qty: 'Qty: 1', shipping: 6.95, tax: 0, total: 12.9, methods: ['Ground'] } }));
     fs.writeFileSync(path.join(dir, 'native-r9.json'), JSON.stringify({ kind: 'native', label: 'r9', url: 'https://merchant.example/item',
-      items: [{ sku: 'X', qty: 1, price: 5.95 }], methods: [{ name: 'Ground' }], perMethod: { Ground: { shipping: 6.95, tax: 0, total: 12.9 } } }));
+      product: { optionFields: 1 }, items: [{ sku: 'X', qty: 1, price: 5.95 }], methods: [{ name: 'Ground' }], perMethod: { Ground: { shipping: 6.95, tax: 0, total: 12.9 } } }));
     execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
     assert.match(fs.readFileSync(path.join(dir, 'report.md'), 'utf8'), /variant not pinned/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -127,4 +127,29 @@ test('the all-link scan labels an unverified merchant link as Merchant, not Nati
     assert.match(scanSection, /\[Merchant\]\(<https:\/\/merchant\.example\/cocoa\?sku=C1>\)/);
     assert.doesNotMatch(scanSection, /\[Native\]/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+function reportFor(google, native) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ucpqa-flag-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'google-x.json'), JSON.stringify({ kind: 'google', label: 'x', url: 'https://www.google.com/search?ibp=oshop', status: 'order-review',
+      initial: { method: 'Ground', itemPrice: '$5.95', qty: 'Qty: 1', shipping: 6.95, tax: 0, total: 12.9, methods: ['Ground'] }, ...google }));
+    fs.writeFileSync(path.join(dir, 'native-x.json'), JSON.stringify({ kind: 'native', label: 'x', items: [{ sku: 'X', qty: 1, price: 5.95 }],
+      methods: [{ name: 'Ground' }], perMethod: { Ground: { shipping: 6.95, tax: 0, total: 12.9 } }, ...native }));
+    execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
+    return fs.readFileSync(path.join(dir, 'report.md'), 'utf8');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+test('a product with no options is not flagged as unpinned, even without sku=', () => {
+  assert.doesNotMatch(reportFor({ offer: { merchantUrl: 'https://m.example/heater' } }, { url: 'https://m.example/heater', product: { optionFields: 0 } }), /variant not pinned/);
+});
+
+test('an unpinned Google link is fine once the native run pinned the variant with sku=', () => {
+  assert.doesNotMatch(reportFor({ offer: { merchantUrl: 'https://m.example/cable' } }, { url: 'https://m.example/cable?sku=C-3F', product: { optionFields: 1 } }), /variant not pinned/);
+});
+
+test('an unreadable Google item price is flagged, not silently skipped', () => {
+  const g = { initial: { method: 'Ground', itemPrice: 'Price unavailable', qty: 'Qty: 1', shipping: 6.95, tax: 0, total: 12.9, methods: ['Ground'] } };
+  assert.match(reportFor(g, { url: 'https://m.example/p?sku=X', product: { optionFields: 0 } }), /item price unreadable/);
 });
