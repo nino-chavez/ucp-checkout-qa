@@ -44,7 +44,7 @@ There are two ways to run the same test. Pick by who is running it.
 
 ### Chrome runner
 
-**Pilot download pending:** no release is published as of September 24, 2026. These installation steps apply once a pilot asset appears in [Releases](https://github.com/nino-chavez/ucp-checkout-qa/releases).
+**Current pilot:** [v0.1.0-pilot.1](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.1). Its release notes list the known limits.
 
 1. Add **Claude in Chrome** to Chrome, in a separate Chrome profile such as "UCP testing". Keeping it apart from your own shopping avoids old merchant carts.
 2. In that profile, sign in to the Google account approved for your UCP test program (the allowlist).
