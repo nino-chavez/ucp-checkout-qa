@@ -13,6 +13,8 @@ Use this Claude skill for merchant onboarding and product retests through Google
 
 For CSMs and PMs, use **Claude with Claude in Chrome**. You do not need a terminal.
 
+**[Watch the 77-second walkthrough](https://github.com/nino-chavez/ucp-checkout-qa/releases/download/v0.1.0-pilot.4/ucp-checkout-qa-tutorial.mp4)** (silent, captioned) of the whole flow: download, install, and one test run on a real product, recorded with pilot.4.
+
 Follow the [Claude setup guide](docs/claude-setup.md) to:
 
 1. Prepare a dedicated Chrome profile and your approved Google test account.
