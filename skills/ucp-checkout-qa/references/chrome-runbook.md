@@ -1,4 +1,4 @@
-# Chrome runner (Claude in Chrome, no install)
+# Chrome runner (Claude in Chrome, no terminal)
 
 Use this runner when Claude in Chrome tools are available (`navigate`, `computer`, `get_page_text`, `javascript_tool`, `find`). It needs no terminal, Node, or browse-tool. Claude drives the tester's own Chrome, and reports go to Google Drive through the Google Drive connector.
 
