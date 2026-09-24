@@ -2,7 +2,7 @@
 
 [Back to the README](../README.md)
 
-**The pilot needs supervised testing.** [v0.1.0-pilot.3](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.3) adds the Google method-list step and the Claude Desktop setup (commit `15c3a7d`), on top of pilot.2's Chrome corrections (commit `c8bb19f`). A coworker’s first-time setup and repeated batches remain unverified. Replace an installed copy of an earlier pilot using the [update steps](claude-setup.md#update-the-skill).
+**The pilot needs supervised testing.** [v0.1.0-pilot.4](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.4) adds the "No prior claims supplied" rule (commit `2102aae`). pilot.3 added the Google method-list step and the Claude Desktop setup (commit `15c3a7d`), on top of pilot.2's Chrome corrections (commit `c8bb19f`). A coworker’s first-time setup and repeated batches remain unverified. Replace an installed copy of an earlier pilot using the [update steps](claude-setup.md#update-the-skill).
 
 ## Chrome changes included in pilot.2
 

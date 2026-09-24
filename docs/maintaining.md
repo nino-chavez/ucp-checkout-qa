@@ -4,7 +4,7 @@
 
 Keep installation and distribution in this public repository. Publish the skill ZIP as a versioned GitHub Release asset, then share the repo link. Do not distribute installers through chat, email, or file shares.
 
-The current installer is [v0.1.0-pilot.3](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.3). Resolve the [handoff blockers](known-limits.md) and test the installed skill before calling a release ready for routine coworker use.
+The current installer is [v0.1.0-pilot.4](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.4). Resolve the [handoff blockers](known-limits.md) and test the installed skill before calling a release ready for routine coworker use.
 
 ## Build the archive
 
