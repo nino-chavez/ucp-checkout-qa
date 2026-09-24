@@ -7,7 +7,7 @@ Use this Claude skill for merchant onboarding and product retests through Google
 **[Set up Claude](#set-up-claude)** · **[Run a test](#run-a-test)** · [Reports](#read-and-share-the-results) · [Cost and ROI](#cost-and-roi)
 
 > [!IMPORTANT]
-> **Pilot available: [v0.1.0-pilot.3](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.3).** Use it for supervised testing. Run it from Claude Desktop (Home > Chat). A coworker’s first-time setup and repeated batches still need validation. Read the [known limits](docs/known-limits.md) before running checkout.
+> **Pilot available: [v0.1.0-pilot.4](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.4).** Use it for supervised testing. Run it from Claude Desktop (Home > Chat). A coworker’s first-time setup and repeated batches still need validation. Read the [known limits](docs/known-limits.md) before running checkout.
 
 ## Set up Claude
 
