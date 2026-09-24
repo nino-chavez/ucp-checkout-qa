@@ -23,7 +23,7 @@ This supersedes the earlier independent-agent-worker proposal. Neither Claude Co
 - Use browse-tool's Chrome extension and local host as prior art if a local bridge is needed.
 - CSMs and PMs already use Claude Desktop and Claude in Chrome. Some have Claude Code CLI; it stays optional.
 - Simplify setup without silently dropping coverage, cart isolation, evidence, or reports.
-- Keep the repo public, with setup, installation, and distribution in the repo. The [README distribution section](../README.md#distribution) owns the process. Coworkers do not need a GitHub invitation to read it or download releases. Do not distribute ZIPs directly.
+- Keep the repo public, with setup, installation, and distribution in the repo. The [release guide](../docs/maintaining.md) owns the process. Coworkers do not need a GitHub invitation to read it or download releases. Do not distribute ZIPs directly.
 - Review the plan and design before building a production extension.
 
 These constraints record the user's Google integration, browser-tool, and audience corrections. This document owns the project-specific requirements.
@@ -75,13 +75,15 @@ The reviewer inspected Claude's original tool results and rendered captures from
 
 This is one product tested through Claude's connected tools, not a cold run of an uploaded skill in a CSM's app. It does not prove batches, interruption recovery, the $0 workaround sequence, or repeat-run cleanup. The reviewer inspected historical evidence and did not rerun a live checkout.
 
-Before coworker handoff, address these runbook findings:
+The first pilot review found these runbook issues:
 
 - Cleanup still deletes every physical cart item. A local fixture confirmed that it also deletes an unrelated item added after the initial empty-cart check. Capture run-owned cart/item IDs and remove only those; if ownership is uncertain, stop cleanup and report it.
 - The setup text treats Visit site as proof of a non-allowlisted account. Check the account first, but keep unresolved Buy absence blocked rather than assigning a cause from that button alone.
 - The normal native path quotes the API without explicitly reading the rendered checkout summary. Restore the intended method and capture its rendered summary, or state that the comparison was API-only. The existing protocol defines both sources.
 
-Update, September 24, 2026: all three are fixed in the runbook on `main` (run-owned cleanup, account check before blocking, rendered-summary read), after v0.1.0-pilot.1. They were checked live on the KONG product in the Tart test Mac, including an unrelated item added mid-run that cleanup left in place. These were originally review findings, not fixes already made. The rebuilt ZIP matches the merged source and is a local review artifact. It is not a coworker handoff. Installation and distribution go through the public repo; no GitHub invitation is needed. No pilot release is published as of September 24, 2026.
+Source update, September 24, 2026: `c8bb19f` adds the three runbook corrections on `main`: cleanup using recorded item IDs, an account check before blocking, and a rendered-summary read. The maintainer reports a live check on the KONG product in the Tart test Mac, including cleanup that left an unrelated item in place. This documentation review checked the source changes but did not repeat that live test.
+
+The published `v0.1.0-pilot.1` installer still targets `1a8a3b6` and does not contain those corrections. They require a new release. Installation and distribution go through the public repo; no GitHub invitation is needed. A cold coworker run of the installed skill remains outstanding.
 
 The captured proof establishes screenshot access to one Google review. Its top-page script returned no frame text; that does not establish a universal limitation for every tool version. Historical amounts such as $11.90 are clues, not a future run's ground truth. Recheck prices and addressed quotes each time.
 
@@ -226,7 +228,7 @@ Tokens come from browse-tool's popup: system typography, `#20252b` text, `#52617
 
 ## Measure cost and value on comparable tests
 
-The [README estimates](../README.md#cost-estimates) cover prior exploration and a CLI forecast, not this browser-agent route.
+The [cost estimates](../docs/costs.md) cover prior exploration and a CLI forecast, not this browser-agent route.
 
 Record setup, supervision, review, correction and publishing time, retries, elapsed time, coverage, and correctness. Capture model/token usage only when available. Distinguish plan allowance, API-price equivalent, and actual additional spend. Start a batch with its protocol and evidence rather than this whole conversation.
 

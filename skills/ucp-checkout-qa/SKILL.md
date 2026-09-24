@@ -1,6 +1,6 @@
 ---
 name: ucp-checkout-qa
-description: Verify Google UCP (Universal Commerce Protocol) Buy links for BigCommerce merchants end to end through order review, compare product, shipping, tax, and totals against the merchant's native BigCommerce checkout, and produce a row-by-row report with likely owner (Google, BC, feed, or merchant setting). Runs through Claude in Chrome with no install, or through browse-tool scripts from a terminal. Use when onboarding new UCP merchants or products, retesting a UCP testing sheet, independently verifying someone else's UCP test notes, or when asked why a Google Buy flow shows the wrong shipping, tax, total, or an eligibility error. Stops before payment.
+description: Verify Google UCP (Universal Commerce Protocol) Buy links for BigCommerce merchants end to end through order review, compare product, shipping, tax, and totals against the merchant's native BigCommerce checkout, and produce a row-by-row report with likely owner (Google, BC, feed, or merchant setting). Runs through Claude in Chrome without a terminal, or through browse-tool scripts from a terminal. Use when onboarding new UCP merchants or products, retesting a UCP testing sheet, independently verifying someone else's UCP test notes, or when asked why a Google Buy flow shows the wrong shipping, tax, total, or an eligibility error. Stops before payment.
 ---
 
 # UCP checkout QA
@@ -13,7 +13,7 @@ Test Google UCP Buy links the way a shopper sees them, compare every number with
 
 | Runner | Use when | Instructions |
 |---|---|---|
-| **Chrome** | Claude in Chrome tools are available. No terminal or install; the usual choice for CSMs and PMs, single products, and small batches | [references/chrome-runbook.md](references/chrome-runbook.md) — follow it instead of the command-line Setup, Inputs, and Workflow sections |
+| **Chrome** | Claude in Chrome tools are available. No terminal is needed after the extension and skill are installed; the usual choice for CSMs and PMs, single products, and small batches | [references/chrome-runbook.md](references/chrome-runbook.md) — follow it instead of the command-line Setup, Inputs, and Workflow sections |
 | **Command line** | A terminal with Node and browse-tool. Large batches, repeat runs, or a second check on a screen-read Chrome result | The setup and workflow sections below |
 
 Both runners follow [references/protocol.md](references/protocol.md) and [references/owner-routing.md](references/owner-routing.md), and produce the Deliverable described below.
