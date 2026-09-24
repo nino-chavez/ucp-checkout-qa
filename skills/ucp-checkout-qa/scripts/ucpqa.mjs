@@ -27,8 +27,16 @@ function redact(v) {
 }
 function emit(obj, outDir, name) {
   const clean = redact(obj);
-  if (outDir) { fs.mkdirSync(outDir, { recursive: true }); fs.writeFileSync(path.join(outDir, name), JSON.stringify(clean, null, 2)); }
-  console.log(JSON.stringify(clean, null, 2));
+  if (outDir) {
+    // With --out, the full record goes to disk and the agent gets one line: every extra
+    // line printed here is re-read on every later turn of the session.
+    fs.mkdirSync(outDir, { recursive: true }); const file = path.join(outDir, name);
+    fs.writeFileSync(file, JSON.stringify(clean, null, 2));
+    const i = clean.initial || {}; const back = clean.steps?.switchBack;
+    console.log(JSON.stringify({ file, status: clean.status || (clean.error ? 'error' : 'ok'), error: clean.error || clean.attempts?.at(-1)?.error || undefined,
+      initial: i.method ? `${i.method} ship ${i.shipping} tax ${i.tax} total ${i.total}` : undefined, switchBack: back ? `ship ${back.shipping} total ${back.total}` : undefined,
+      methods: clean.methods?.length ?? i.methods?.length, merchantUrl: clean.offer?.merchantUrl }));
+  } else console.log(JSON.stringify(clean, null, 2));
 }
 
 // ---------- preflight ----------
