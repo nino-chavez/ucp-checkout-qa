@@ -5,7 +5,7 @@
 Use Claude with Claude in Chrome to test a product without a terminal. The skill supplies the test procedure; the Chrome extension lets Claude operate the browser.
 
 > [!IMPORTANT]
-> **Current pilot: [v0.1.0-pilot.2](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2).** Use it for supervised testing. This version includes the Chrome fixes. A first-time installation still needs a coworker test. Read the [known limits](known-limits.md) before checkout.
+> **Current pilot: [v0.1.0-pilot.3](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.3).** Use it for supervised testing. Run it from Claude Desktop (Home > Chat). A first-time installation still needs a coworker test. Read the [known limits](known-limits.md) before checkout.
 
 ## 1. Prepare Chrome and your accounts
 
@@ -20,7 +20,7 @@ Your organization must permit Claude in Chrome and uploaded skills. If the contr
 
 ## 2. Install the skill from this repository
 
-1. Open the [pilot release](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2). Read its release notes and known limits.
+1. Open the [pilot release](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.3). Read its release notes and known limits.
 2. Under **Assets**, download **ucp-checkout-qa.zip**. Keep it zipped. The **Source code** archives contain the whole repository and are not the skill installer.
 3. In Claude, enable **Code execution and file creation**. Your organization may control this setting.
 4. Open **Customize > Skills**, select **+ Add**, then **Upload skill**.
