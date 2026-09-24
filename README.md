@@ -23,7 +23,7 @@ The scan includes blocked pages; the comparison links to the product pages. The 
 
 ## First run
 
-Start from this private repository for setup, installation, downloads, and updates. Both routes require a GitHub account with repo access. If this page shows a 404, sign in to the invited account and accept the repository invitation.
+Start from this public repository for setup, installation, downloads, and updates. Reading the instructions and downloading release assets do not require a GitHub invitation. Google Buy access and Claude permissions are separate prerequisites.
 
 There are two ways to run the same test. Pick by who is running it.
 
@@ -63,7 +63,7 @@ For updates, return to **Releases**, read the changes and known limits, and inst
 
 ### Command-line runner
 
-Install with a GitHub account that has access to this private repo:
+Install from this repository:
 
 ```bash
 npx skills add https://github.com/nino-chavez/ucp-checkout-qa
@@ -79,9 +79,9 @@ The skill asks for the allowlisted email and authorized checkout details: name, 
 
 ## Distribution
 
-This repository owns setup, installation, and distribution. Share the repo link with coworkers. Keep source, instructions, version history, and downloadable installers here; do not send ZIPs through chat, email, or a separate file share.
+This public repository owns setup, installation, and distribution. Share the repo link with coworkers. Keep source, instructions, version history, and downloadable installers here; do not send ZIPs through chat, email, or a separate file share.
 
-Claude's upload format is a ZIP. Publish that file as a versioned asset in this private repo's **Releases**. Testers download and upload it through the browser; packaging commands are for maintainers only. Repo read access also covers releases. [GitHub release access](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
+Claude's upload format is a ZIP. Publish that file as a versioned asset in this repo's **Releases**. Testers download and upload it through the browser; packaging commands are for maintainers only. [How GitHub releases work](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 
 ### Release preparation
 

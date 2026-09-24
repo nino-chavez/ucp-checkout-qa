@@ -23,7 +23,7 @@ This supersedes the earlier independent-agent-worker proposal. Neither Claude Co
 - Use browse-tool's Chrome extension and local host as prior art if a local bridge is needed.
 - CSMs and PMs already use Claude Desktop and Claude in Chrome. Some have Claude Code CLI; it stays optional.
 - Simplify setup without silently dropping coverage, cart isolation, evidence, or reports.
-- Keep setup, installation, and distribution in the private repo. The [README distribution section](../README.md#distribution) owns the process; coworkers need repo access. Do not distribute ZIPs directly.
+- Keep the repo public, with setup, installation, and distribution in the repo. The [README distribution section](../README.md#distribution) owns the process. Coworkers do not need a GitHub invitation to read it or download releases. Do not distribute ZIPs directly.
 - Review the plan and design before building a production extension.
 
 These constraints record the user's Google integration, browser-tool, and audience corrections. This document owns the project-specific requirements.
@@ -32,7 +32,7 @@ These constraints record the user's Google integration, browser-tool, and audien
 
 The tester supplies the current product or a list, invokes the QA skill, and sends the task. Claude checks readiness, asks for missing details, runs the checks, investigates anomalies, saves observations, and produces reports. Questions and progress appear in Claude.
 
-The repo should contain the skill, a visual setup guide, prompts for both entry modes, report templates, and troubleshooting. Derive these from the existing protocol and owner-routing files. Keep one testing standard. Testers need private repository access and browser download/upload steps, but no package manager, debugging ports, or shell commands.
+The repo should contain the skill, a visual setup guide, prompts for both entry modes, report templates, and troubleshooting. Derive these from the existing protocol and owner-routing files. Keep one testing standard. Testers use the public README and browser download/upload steps, with no repository invitation, package manager, debugging ports, or shell commands.
 
 Use Solution Architecture voice for this plan and Documentation voice for setup. Carry over evidence discipline and clear subjects, not blog cadence or personal reflection.
 
@@ -81,7 +81,7 @@ Before coworker handoff, address these runbook findings:
 - The setup text treats Visit site as proof of a non-allowlisted account. Check the account first, but keep unresolved Buy absence blocked rather than assigning a cause from that button alone.
 - The normal native path quotes the API without explicitly reading the rendered checkout summary. Restore the intended method and capture its rendered summary, or state that the comparison was API-only. The existing protocol defines both sources.
 
-These are review findings, not fixes already made. The rebuilt ZIP matches the merged source and is a local review artifact. It is not a coworker handoff. Installation and distribution go through the private repo, so coworkers need GitHub access. No pilot release is published as of September 24, 2026.
+These are review findings, not fixes already made. The rebuilt ZIP matches the merged source and is a local review artifact. It is not a coworker handoff. Installation and distribution go through the public repo; no GitHub invitation is needed. No pilot release is published as of September 24, 2026.
 
 The captured proof establishes screenshot access to one Google review. Its top-page script returned no frame text; that does not establish a universal limitation for every tool version. Historical amounts such as $11.90 are clues, not a future run's ground truth. Recheck prices and addressed quotes each time.
 
@@ -195,7 +195,7 @@ Show account, destination, and exact content before publishing. Retain authoriza
 
 1. Check Chrome, skill, and connector permissions on the tester's actual Claude surface, plus Google Buy allowlist access.
 2. Run the four feasibility proofs, then the representative cases below. Claude's pasted proposal is not a completed test receipt.
-3. Give a CSM or PM access to the private repo and its README link. Have them follow setup and download the pilot release there. Record whether they reach a correct, verifiable report without a terminal or author takeover. Count assistance explicitly.
+3. Give a CSM or PM the public repo's README link. Have them follow setup and download the pilot release there. Record whether they reach a correct, verifiable report without a terminal or author takeover. Count assistance explicitly.
 4. Add deterministic tools for measured capability gaps. Add a launcher only if product selection, batches, or reviewing results remains a meaningful obstacle.
 
 If a Desktop package becomes necessary, repeat installation on another machine, including browser preparation, restart/reconnect, and updates. Do not hide those steps behind “one click.”

@@ -74,7 +74,7 @@ After PR #5 merged as `8476e2a`, the reviewer inspected the original Claude tool
 
 All 17 CLI tests passed again. A local review ZIP was rebuilt from the exact merged tree and each of its 11 files was compared byte-for-byte with that commit. A local cleanup fixture confirmed the current Chrome snippet deletes unrelated physical items introduced after its initial empty-cart check. The build plan records that finding and the remaining account-classification and native-rendered-summary gaps. No production fix was made during this review.
 
-On September 24, the user required all setup, installation, and distribution to stay in the private repo. The README now owns that process, and the plan points to it. Coworkers need GitHub access and download install assets from repo releases. A local ZIP is a build artifact, not a direct handoff. No release was published during this documentation change. The documented archive command and README image/link audit passed; this does not establish that a coworker can install or run the skill.
+On September 24, the user required all setup, installation, and distribution to stay in the repo, then confirmed it should remain public. The README owns that process, and the plan points to it. Coworkers can read the instructions and download release assets without a GitHub invitation. A local ZIP is a build artifact, not a direct handoff. No release was published during this documentation change. The documented archive command and README image/link audit passed; this does not establish that a coworker can install or run the skill.
 
 JavaScript syntax, local artifact links, and whitespace were checked. The source revisions and external documentation used for the plan are listed in its provenance section.
 
