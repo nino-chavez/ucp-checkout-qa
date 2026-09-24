@@ -68,3 +68,20 @@ test('navigation error is surfaced instead of being mistaken for a page without 
   const page = new Page({ send: async () => ({ errorText: 'net::ERR_NAME_NOT_RESOLVED' }) }, 'target', 'session');
   await assert.rejects(page.goto('https://invalid.example', 0), /navigation failed: net::ERR_NAME_NOT_RESOLVED/);
 });
+
+test('unverified merchant link is not labeled as native checkout evidence', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ucpqa-merchant-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'google-row8.json'), JSON.stringify({
+      kind: 'google', label: 'row8', url: 'https://www.google.com/search?item=8',
+      status: 'no-buy', offer: { merchantUrl: 'https://merchant.example/product' },
+    }));
+    execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
+    const report = fs.readFileSync(path.join(dir, 'report.md'), 'utf8');
+    const flags = JSON.parse(fs.readFileSync(path.join(dir, 'flags.json'), 'utf8'));
+    assert.match(report, /\[Merchant\]\(<https:\/\/merchant\.example\/product>\)/);
+    assert.doesNotMatch(report, /\[Native\]\(<https:\/\/merchant\.example\/product>\)/);
+    assert.equal(flags[0].nativeUrl, null);
+    assert.equal(flags[0].merchantUrl, 'https://merchant.example/product');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

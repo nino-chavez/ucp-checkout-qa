@@ -317,11 +317,12 @@ function report() {
     if (n?.error) f.push(`native error: ${n.error}`);
     if (g?.error) f.push(`google script error: ${g.error}`);
     const nv = init && n?.perMethod?.[init.method];
-    lines.push(`| ${cell(label)} | ${page('Google', g?.url)} · ${page('Native', n?.url || g?.offer?.merchantUrl)} | ${cell(g?.status)} | ${cell(init ? `${init.method} · ${money(init.shipping)} · ${money(init.tax)} · ${money(init.total)}` : '—')} | ${cell(back ? `${money(back.shipping)} · ${money(back.total)}` : '—')} | ${cell(nv ? `${money(nv.shipping)} · ${money(nv.tax)} · ${money(nv.total)}` : n ? (n.error ? 'error' : 'method not offered natively') : '—')} | ${cell(f.join('; ') || 'none')} |`);
-    flags.push({ label, googleUrl: g?.url || null, nativeUrl: n?.url || g?.offer?.merchantUrl || null, flags: f, listing: g?.offer ? { delivery: g.offer.listingDelivery, total: g.offer.listingTotal, note: 'listing estimate for the link\'s location parameter, not an addressed checkout quote' } : null });
+    const merchantPage = n?.url ? page('Native', n.url) : page('Merchant', g?.offer?.merchantUrl);
+    lines.push(`| ${cell(label)} | ${page('Google', g?.url)} · ${merchantPage} | ${cell(g?.status)} | ${cell(init ? `${init.method} · ${money(init.shipping)} · ${money(init.tax)} · ${money(init.total)}` : '—')} | ${cell(back ? `${money(back.shipping)} · ${money(back.total)}` : '—')} | ${cell(nv ? `${money(nv.shipping)} · ${money(nv.tax)} · ${money(nv.total)}` : n ? (n.error ? 'error' : 'method not offered natively') : '—')} | ${cell(f.join('; ') || 'none')} |`);
+    flags.push({ label, googleUrl: g?.url || null, nativeUrl: n?.url || null, merchantUrl: g?.offer?.merchantUrl || null, flags: f, listing: g?.offer ? { delivery: g.offer.listingDelivery, total: g.offer.listingTotal, note: 'listing estimate for the link\'s location parameter, not an addressed checkout quote' } : null });
   }
   lines.push('', '## Flags by label', '');
-  for (const x of flags) { lines.push(`- **${x.label}** (${page('Google', x.googleUrl)} · ${page('Native', x.nativeUrl)}): ${x.flags.join('; ') || 'no mechanical flags'}${x.listing ? ` (listing: delivery ${x.listing.delivery}, total ${x.listing.total})` : ''}`); }
+  for (const x of flags) { lines.push(`- **${x.label}** (${page('Google', x.googleUrl)} · ${x.nativeUrl ? page('Native', x.nativeUrl) : page('Merchant', x.merchantUrl)}): ${x.flags.join('; ') || 'no mechanical flags'}${x.listing ? ` (listing: delivery ${x.listing.delivery}, total ${x.listing.total})` : ''}`); }
   lines.push('', 'Flags are mechanical comparisons. Verdicts against prior claims, owner routing, and sheet notes are written by the agent per references/owner-routing.md.');
   const out = path.join(dir, 'report.md'); fs.writeFileSync(out, lines.join('\n') + '\n'); fs.writeFileSync(path.join(dir, 'flags.json'), JSON.stringify(flags, null, 2));
   console.log(out);
