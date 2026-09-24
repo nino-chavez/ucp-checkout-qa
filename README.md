@@ -7,7 +7,7 @@ Use this Claude skill for merchant onboarding and product retests through Google
 **[Set up Claude](#set-up-claude)** · **[Run a test](#run-a-test)** · [Reports](#read-and-share-the-results) · [Cost and ROI](#cost-and-roi)
 
 > [!IMPORTANT]
-> **Pilot available: [v0.1.0-pilot.1](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.1).** Use it for supervised testing. This installer can remove unrelated cart items. The Chrome fixes are in the source and await a new release. Read the [known limits](docs/known-limits.md) before running checkout.
+> **Pilot available: [v0.1.0-pilot.2](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2).** Use it for supervised testing. The Chrome fixes are included. A coworker’s first-time setup and repeated batches still need validation. Read the [known limits](docs/known-limits.md) before running checkout.
 
 ## Set up Claude
 

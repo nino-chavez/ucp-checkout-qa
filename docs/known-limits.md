@@ -2,27 +2,27 @@
 
 [Back to the README](../README.md)
 
-**The pilot needs supervised testing.** [v0.1.0-pilot.1](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.1) is published from commit `1a8a3b6`. The Chrome issues below remain in that installer. The updated instructions are on `main` at `c8bb19f` and await a new release. A release download does not establish readiness for routine coworker use.
+**The pilot needs supervised testing.** [v0.1.0-pilot.2](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2) includes the Chrome corrections from commit `c8bb19f`. A coworker’s first-time setup and repeated batches remain unverified. Replace an installed copy of pilot.1 using the [update steps](claude-setup.md#update-the-skill).
 
-## Chrome workflow
+## Chrome changes included in pilot.2
 
-### Cart cleanup can remove unrelated items
+### Cart cleanup uses recorded items
 
-In the published pilot, cleanup deletes every physical item in the merchant cart. An item added after the initial empty-cart check can be deleted too.
+In pilot.1, cleanup could delete an unrelated item added after the initial empty-cart check.
 
-The updated runbook records cart and item IDs, then deletes only those recorded items. A dedicated testing profile reduces interference; it does not repair the older installer.
+Pilot.2 records cart and item IDs, then deletes only those recorded items. If the IDs are missing, Claude stops cleanup and asks the tester. A dedicated testing profile still helps keep ordinary shopping separate.
 
 ### A missing Buy button has more than one possible cause
 
-The published pilot treats **Visit site** as proof that the account lacks program access. That conclusion is too strong.
+Pilot.1 treated **Visit site** as proof that the account lacked program access. That conclusion was too strong.
 
-The updated runbook checks the account first. If Buy remains absent on the approved account, it records the row as blocked with an unresolved owner.
+Pilot.2 checks the account first. If Buy remains absent on the approved account, it records the row as blocked with an unresolved owner.
 
 ### Native quotes need a clear evidence label
 
-The published pilot reads rates through the merchant’s Storefront API, its programmatic checkout interface. It does not routinely restore the selected method and read the rendered checkout summary.
+Pilot.1 read rates through the merchant’s Storefront API, its programmatic checkout interface. It did not routinely restore the selected method and read the rendered checkout summary.
 
-The updated runbook restores a shipping method and reads the checkout page. It requires an **API-only** label if that summary cannot be read. When method lists differ, confirm the native list on the rendered page before claiming a mismatch.
+Pilot.2 restores a shipping method and reads the checkout page. It requires an **API-only** label if that summary cannot be read. When method lists differ, confirm the native list on the rendered page before claiming a mismatch.
 
 ## Command-line workflow
 

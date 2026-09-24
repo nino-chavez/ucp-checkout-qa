@@ -71,7 +71,7 @@ The reviewer inspected Claude's original tool results and rendered captures from
 
 - KONG Halloween Snuzzles Ghost, SKU `HW26C112`, quantity 1: Google's screenshot shows Flat rate shipping $4.99, tax $0.92, total $11.90. The native Storefront API output matches those amounts. Its cleanup output reports zero carts.
 - Drive creation returned native Google Doc and Sheet MIME types. Independent connector reads returned their content. The captured Doc shows heading hierarchy, a numbered list, a link, and a readable table. The Sheet capture shows the imported rows and links. A later readback confirms the currency-string example retains `$11.90`.
-- Local `main` and GitHub both resolve to `8476e2ac8eba798fcfedc94d0dda94ff267efee7`. The reviewer reran all 17 CLI regression tests successfully and rebuilt the ZIP from that exact Git tree.
+- At that review, local `main` and GitHub both resolved to `8476e2ac8eba798fcfedc94d0dda94ff267efee7`. The reviewer reran all 17 CLI regression tests successfully and rebuilt the ZIP from that exact Git tree.
 
 This is one product tested through Claude's connected tools, not a cold run of an uploaded skill in a CSM's app. It does not prove batches, interruption recovery, the $0 workaround sequence, or repeat-run cleanup. The reviewer inspected historical evidence and did not rerun a live checkout.
 
@@ -83,7 +83,7 @@ The first pilot review found these runbook issues:
 
 Source update, September 24, 2026: `c8bb19f` adds the three runbook corrections on `main`: cleanup using recorded item IDs, an account check before blocking, and a rendered-summary read. The maintainer reports a live check on the KONG product in the Tart test Mac, including cleanup that left an unrelated item in place. This documentation review checked the source changes but did not repeat that live test.
 
-The published `v0.1.0-pilot.1` installer still targets `1a8a3b6` and does not contain those corrections. They require a new release. Installation and distribution go through the public repo; no GitHub invitation is needed. A cold coworker run of the installed skill remains outstanding.
+The published `v0.1.0-pilot.2` installer targets `c8bb19f` and includes those corrections. It supersedes pilot.1. Installation and distribution go through the public repo; no GitHub invitation is needed. A cold coworker run of the installed skill remains outstanding.
 
 The captured proof establishes screenshot access to one Google review. Its top-page script returned no frame text; that does not establish a universal limitation for every tool version. Historical amounts such as $11.90 are clues, not a future run's ground truth. Recheck prices and addressed quotes each time.
 
