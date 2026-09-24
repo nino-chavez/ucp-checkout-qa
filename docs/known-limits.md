@@ -36,8 +36,9 @@ Add an offer check and stop on unsupported quantities before comparison. Until t
 - **Maintainer-reported check, September 24, 2026:** the updated runbook was exercised on the same KONG product. The maintainer reported a rendered total of $11.90 and cleanup that retained an unrelated cart item. This documentation review checked the source changes; it did not repeat that live test.
 - **Google reports:** a scratch Doc and Sheet were created through Claude’s Drive connector. Saved content was read back, formatting was inspected, and the scratch files were trashed.
 - **Command-line regression suite:** 17 tests passed at the reviewed source revision. These checks do not validate Chrome behavior.
+- **Installed-skill run, September 24, 2026:** the pilot.2 skill was downloaded from its release, uploaded in Claude, and run from Claude Desktop (Home > Chat) against the KONG product in a test Mac. Google and the native checkout matched at $11.90; cleanup left the cart empty. The Chrome side panel did not pick up the uploaded skill, and claude.ai in a browser tab could not control Chrome. That run also reported a shipping method as missing from Google without opening Google's method list; pilot.3 adds that step.
 
-The Chrome proof covered one product. A coworker has not yet completed a cold run using the installed skill in the Chrome side panel or Claude Desktop. Repeat batches and recovery remain unverified. Chrome-run cost, time saved, and ROI are unmeasured.
+The Chrome proofs covered one product. A coworker has not yet completed a cold run. Repeat batches and recovery remain unverified. Chrome-run cost, time saved, and ROI are unmeasured.
 
 The [build plan](../decisions/browser-extension-plan.md) contains the evidence record and remaining pilot checks. The [interface concepts](../design/extension-review/index.html) use synthetic data. No custom browser extension has been built.
 

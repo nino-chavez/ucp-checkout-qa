@@ -23,21 +23,28 @@ Your organization must permit Claude in Chrome and uploaded skills. If the contr
 1. Open the [pilot release](https://github.com/nino-chavez/ucp-checkout-qa/releases/tag/v0.1.0-pilot.2). Read its release notes and known limits.
 2. Under **Assets**, download **ucp-checkout-qa.zip**. Keep it zipped. The **Source code** archives contain the whole repository and are not the skill installer.
 3. In Claude, enable **Code execution and file creation**. Your organization may control this setting.
-4. Open **Customize > Skills**, select **+ Create skill**, then **Upload a skill**.
-5. Upload `ucp-checkout-qa.zip` and turn the skill on. Confirm **ucp-checkout-qa** appears enabled in the list.
+4. Open **Customize > Skills**, select **+ Add**, then **Upload skill**.
+5. Choose `ucp-checkout-qa.zip` and select **Upload**. Claude runs a security scan, which took about two minutes in testing. The skill is ready when the scan notice disappears and its switch is on. Leave **Publish to org** alone.
 
 See [Claude’s skill installation guide](https://support.claude.com/en/articles/12512180-use-skills-in-claude) if your controls differ.
 
-## 3. Confirm Claude can see the page
+## 3. Run the test from Claude Desktop
 
-1. Open the Google Shopping product in your testing profile.
-2. Open Claude’s Chrome side panel. You can also use Claude Desktop with its Chrome connection active.
-3. Ask: **“Read this page and tell me the product and merchant. Do not start checkout yet.”**
-4. Compare Claude’s answer with the page. If they match, return to the README and choose a [test prompt](../README.md#run-a-test).
+Start the test in the **Claude Desktop app**, in **Home > Chat**. That is the one place, as of September 24, 2026, that has both the uploaded skill and control of Chrome:
 
-Chrome may request access to Google and each merchant’s site. Read those prompts before granting access.
+| Where you start | Uploaded skill | Controls Chrome |
+|---|---|---|
+| **Claude Desktop, Home > Chat** | Yes | Yes, through the Claude in Chrome connector |
+| claude.ai in a browser tab | Yes | No; it has no Claude in Chrome connector |
+| Claude in Chrome side panel | No; it ignored the skill and made its own plan | Yes |
 
-The uploaded skill has not yet completed a coworker test in either the Chrome side panel or Claude Desktop. Record which app you use and whether it picks up the skill. A successful page-reading check proves the browser connection, not the complete test workflow.
+1. In Claude Desktop, open **Home**, choose **Chat**, then **+ > Connectors**. Check that **Claude in Chrome** is on. Turn on **Google Drive** too if you want Google reports.
+2. Type `/ucp` and choose **ucp-checkout-qa**, then add your request and the Google Buy link. The prompts in the README work after it.
+3. If more than one Chrome is connected to your Claude account, Claude asks which one to use. Choose the testing profile's browser.
+4. A **Claude for Chrome** window asks before Claude opens each new site: google.com, then the merchant's store. Read each prompt and choose **Allow this action**, or **Always allow actions on this site** to stop repeat prompts for that site. When Claude asks you to approve a prompt, look for this window; it can sit behind the Claude app.
+5. Claude asks for the shipping name, address, and phone, and says which checkouts receive them.
+
+This was tested end to end on one product in a test Mac, from the release download through the Drive reports. A coworker's cold run is still pending.
 
 ## Optional: save reports in Google Drive
 

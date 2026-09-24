@@ -17,7 +17,7 @@ Follow the [Claude setup guide](docs/claude-setup.md) to:
 
 1. Prepare a dedicated Chrome profile and your approved Google test account.
 2. Download the pilot from this repo, upload it in Claude, and enable it.
-3. Confirm Claude can read the product page before starting checkout.
+3. Run tests from the **Claude Desktop app** (Home > Chat), which has both the skill and Chrome control.
 
 Google Drive is optional. Connect it only if you want a Google Doc or Sheet.
 
@@ -27,12 +27,12 @@ Already use a terminal? Follow the separate [command-line guide](docs/command-li
 
 After setup, choose a prompt below. Supervise the pilot and test **quantity 1**. Keep ordinary shopping out of the testing profile.
 
-### This Google Shopping page
+### One product
 
-Open the product page, then paste this into Claude:
+In Claude Desktop, open **Home > Chat**. Paste this, then the product's Google Buy link:
 
 ```text
-Use ucp-checkout-qa on this page.
+Use ucp-checkout-qa on this link.
 Confirm the merchant and product.
 Confirm the variant.
 Compare both checkouts at quantity 1.
@@ -42,7 +42,7 @@ Stop before payment.
 
 ### A list of links
 
-Paste this prompt, followed by your Google Buy links. Keep any sheet row labels beside the links.
+In the same chat, paste this prompt, followed by your Google Buy links. Keep any sheet row labels beside the links.
 
 ```text
 Use ucp-checkout-qa on these links.
