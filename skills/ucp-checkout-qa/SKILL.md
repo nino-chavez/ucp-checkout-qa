@@ -33,6 +33,8 @@ Test Google UCP Buy links the way a shopper sees them, compare every number with
 Q=<skill-dir>/scripts/ucpqa.mjs; OUT=./ucp-qa-$(date +%F); ADDR=~/ucp-qa-address.json
 node $Q preflight --email you@commerce.com --probe "<one Buy link>"   # must end "ready": true; note authuser
 node $Q links sheet.xlsx --tab "Commerce Internal Testing" --rows 4,8-17 > $OUT-links.json
+node $Q scan sheet.xlsx --tab "Commerce Internal Testing" --rows 4,8-17 --authuser 1 --out $OUT
+# Review $OUT/scan.json and confirm each intended product/variant before checkout.
 # for each distinct docid (rows sharing a link are tested once):
 node $Q google "<buy url>" --authuser 1 --label row12 --address $ADDR --out $OUT
 node $Q native "<offer.merchantUrl from the google result>" --label row12 --method "<initial.method>" --address $ADDR --out $OUT
@@ -40,14 +42,15 @@ node $Q report $OUT        # writes $OUT/report.md + flags.json
 ```
 
 1. **Preflight** must pass before anything else. If "Visit site only" shows up for a link, check the account before calling it a defect.
-2. **Google** for each link. The script records the offer and the listing estimate, clicks Buy, and reads order review at about 5, 15, and 30 seconds. When the first shipping charge is $0 it runs reselect → switch → switch back → fresh Buy. It retries "couldn't complete your purchase" once and keeps both attempts. Pass `--alt "<method>"` to choose the switch target, and `--price-methods` to price every method.
-3. **Native** only when Google reached order review. It runs in an isolated guest browser context: it adds the same variant through `?sku=` from Google's merchant link, gets a quote for the same address from the Storefront API for every method, reads the rendered checkout summary, and empties the cart. Add `--rendered-methods` only when the method lists differ. That runs the email step with the newsletter box unchecked, which leaves an abandoned-cart trail.
-4. **Report**: `report.md` holds the mechanical flags. You then write the judgment layer described in [references/protocol.md](references/protocol.md): verdicts against prior claims, new findings, and limits. Assign a likely owner with [references/owner-routing.md](references/owner-routing.md).
+2. **Scan every distinct link before checkout.** `scan.json` records navigation, page title, Buy/Visit site, and the merchant link. Check that each page shows the intended product and variant; `buy-present` is a control hint, not a pass. Blocked links remain in the final report.
+3. **Google** for each passing link. The script records the offer and the listing estimate, clicks Buy, and reads order review at about 5, 15, and 30 seconds. When the first shipping charge is $0 it runs reselect → switch → switch back → fresh Buy. It retries "couldn't complete your purchase" once and keeps both attempts. Pass `--alt "<method>"` to choose the switch target, and `--price-methods` to price every method.
+4. **Native** only when Google reached order review. It runs in an isolated guest browser context: it adds the same variant through `?sku=` from Google's merchant link, gets a quote for the same address from the Storefront API for every method, reads the rendered checkout summary, and empties the cart. Add `--rendered-methods` only when the method lists differ. That runs the email step with the newsletter box unchecked, which leaves an abandoned-cart trail.
+5. **Report**: `report.md` holds the all-link scan and mechanical flags. You then write the judgment layer described in [references/protocol.md](references/protocol.md): verdicts against prior claims, new findings, and limits. Assign a likely owner with [references/owner-routing.md](references/owner-routing.md).
 
 ## Deliverable
 
 Lead with the answer: what reproduced, what was contradicted, what's new. Then give:
-- A row table: initial Google, after workaround, native, flags.
+- A row table with direct Google and native product links, initial Google, after workaround, native, and flags.
 - One verdict per prior claim: reproduced, contradicted, not reproduced, or blocked.
 - Likely owner and confidence per issue.
 - Limits.

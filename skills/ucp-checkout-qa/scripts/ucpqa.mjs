@@ -75,7 +75,10 @@ async function preflight() {
 
 // ---------- links ----------
 function links() {
-  const file = args._[0]; if (!file) die('usage: links <sheet.xlsx|links.txt> [--tab NAME] [--rows 4,8-9]');
+  console.log(JSON.stringify(readRows(), null, 2));
+}
+function readRows() {
+  const file = args._[0]; if (!file) die('usage: <links|scan> <sheet.xlsx|links.txt> [--tab NAME] [--rows 4,8-9]');
   let rows = [];
   if (/\.xlsx$/i.test(file)) rows = xlsxRows(file, args.tab);
   else fs.readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
@@ -83,7 +86,30 @@ function links() {
   });
   if (args.rows) { const want = expandRows(args.rows); rows = rows.filter((r) => want.has(r.row)); }
   const byUrl = new Map(); for (const r of rows) byUrl.set(docid(r.url), [...(byUrl.get(docid(r.url)) || []), r.row]);
-  console.log(JSON.stringify(rows.map((r) => ({ ...r, docid: docid(r.url), sameLinkRows: byUrl.get(docid(r.url)) })), null, 2));
+  return rows.map((r) => ({ ...r, docid: docid(r.url), sameLinkRows: byUrl.get(docid(r.url)) }));
+}
+async function scan() {
+  deadline(600000, 'scan');
+  if (args.authuser === undefined || !args.out) die('usage: scan <sheet.xlsx|links.txt> --authuser N --out dir [--tab NAME] [--rows 4,8-9]');
+  const rows = readRows();
+  const unique = [...new Map(rows.map((r) => [r.docid, r])).values()];
+  fs.mkdirSync(args.out, { recursive: true });
+  const file = path.join(args.out, 'scan.json');
+  const b = await Browser.connect(); const p = await b.newPage(); const results = [];
+  try {
+    for (const r of unique) {
+      const item = { rows: r.sameLinkRows, docid: r.docid, url: r.url, checkedAt: now() };
+      try {
+        item.offer = await openOffer(p, withAuth(r.url, args.authuser));
+        item.status = item.offer.buttons.includes('Buy') ? 'buy-present' : item.offer.buttons.includes('Visit site') ? 'visit-site-only' : 'no-buy';
+        if (!item.offer.title) item.status = 'page-content-missing';
+      } catch (e) { item.status = 'navigation-error'; item.error = String(e.message || e); }
+      results.push(item);
+      fs.writeFileSync(file, JSON.stringify(redact(results), null, 2) + '\n');
+      console.log(JSON.stringify(redact({ rows: item.rows, status: item.status, title: item.offer?.title, merchantUrl: item.offer?.merchantUrl, error: item.error })));
+    }
+  } finally { await p.close(); b.close(); }
+  console.log(file);
 }
 function xlsxRows(file, tab) {
   const unz = (p) => { try { return execFileSync('unzip', ['-p', file, p], { maxBuffer: 1 << 28 }).toString(); } catch { return ''; } };
@@ -252,9 +278,19 @@ function report() {
   const byLabel = {};
   for (const f of files) { const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); (byLabel[j.label] ||= {})[j.kind] = j; }
   const money = (n) => (n === undefined || n === null || Number.isNaN(n) ? '—' : `$${Number(n).toFixed(2)}`);
-  const lines = ['# UCP checkout QA — results', '', `Generated ${now()} from ${files.length} result files. Stopped before payment. Personal data redacted.`, '',
-    '| Label | Google status | Initial Google (method · ship · tax · total) | After switch-back | Native (same method) | Flags |', '|---|---|---|---|---|---|'];
+  const cell = (value) => String(value ?? '—').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  const page = (name, url) => /^https?:\/\//.test(url || '') ? `[${name}](<${url.replace(/>/g, '%3E')}>)` : `${name}: unavailable`;
+  const lines = ['# UCP checkout QA — results', '', `Generated ${now()} from ${files.length} result files. Stopped before payment. Personal data redacted.`, ''];
   const flags = [];
+  const scanFile = path.join(dir, 'scan.json');
+  if (fs.existsSync(scanFile)) {
+    const scanned = JSON.parse(fs.readFileSync(scanFile, 'utf8'));
+    lines.push('', '## All-link scan', '', 'This is a page and Buy-control check only. Confirm the intended product and variant before checkout.', '',
+      '| Sheet rows | Google product | Merchant link | Page result | Visible title |', '|---|---|---|---|---|');
+    for (const item of scanned) lines.push(`| ${cell(item.rows?.join(', '))} | ${page('Google', item.url)} | ${page('Native', item.offer?.merchantUrl)} | ${cell(item.status)} | ${cell(item.offer?.title)} |`);
+  }
+  lines.push('', '## Checkout comparisons', '',
+    '| Label | Product pages | Google status | Initial Google (method · ship · tax · total) | After switch-back | Native (same method) | Flags |', '|---|---|---|---|---|---|---|');
   for (const [label, { google: g, native: n }] of Object.entries(byLabel).sort()) {
     const f = [];
     const init = g?.initial; const back = g?.steps?.switchBack;
@@ -273,14 +309,19 @@ function report() {
     if (init?.shipping !== 0) cmp(init); cmp(back); cmp(g?.steps?.switch);
     if (g?.methodPrices) for (const r of Object.values(g.methodPrices)) cmp(r);
     if (n?.items && init?.itemPrice && !init.itemPrice.includes(String(n.items[0]?.price))) f.push(`item price differs: Google ${init.itemPrice} vs native $${n.items[0]?.price}`);
+    const requestedSku = n?.url && new URL(n.url).searchParams.get('sku');
+    if (requestedSku && n?.items?.length && !n.items.some((item) => item.sku === requestedSku)) f.push(`native cart SKU differs from product link: requested ${requestedSku}; cart ${n.items.map((item) => item.sku).join(', ')}`);
+    if (n && !n.error && !n.items?.length) f.push('native cart item not verified');
+    const googleQty = init?.qty?.match(/\d+/)?.[0];
+    if (googleQty && n?.items?.length && !n.items.some((item) => String(item.qty) === googleQty)) f.push(`quantity differs: Google ${googleQty}; native ${n.items.map((item) => item.qty).join(', ')}`);
     if (n?.error) f.push(`native error: ${n.error}`);
     if (g?.error) f.push(`google script error: ${g.error}`);
     const nv = init && n?.perMethod?.[init.method];
-    lines.push(`| ${label} | ${g?.status || '—'} | ${init ? `${init.method} · ${money(init.shipping)} · ${money(init.tax)} · ${money(init.total)}` : '—'} | ${back ? `${money(back.shipping)} · ${money(back.total)}` : '—'} | ${nv ? `${money(nv.shipping)} · ${money(nv.tax)} · ${money(nv.total)}` : n ? (n.error ? 'error' : 'method not offered natively') : '—'} | ${f.join('; ') || 'none'} |`);
-    flags.push({ label, flags: f, listing: g?.offer ? { delivery: g.offer.listingDelivery, total: g.offer.listingTotal, note: 'listing estimate for the link\'s location parameter, not an addressed checkout quote' } : null });
+    lines.push(`| ${cell(label)} | ${page('Google', g?.url)} · ${page('Native', n?.url || g?.offer?.merchantUrl)} | ${cell(g?.status)} | ${cell(init ? `${init.method} · ${money(init.shipping)} · ${money(init.tax)} · ${money(init.total)}` : '—')} | ${cell(back ? `${money(back.shipping)} · ${money(back.total)}` : '—')} | ${cell(nv ? `${money(nv.shipping)} · ${money(nv.tax)} · ${money(nv.total)}` : n ? (n.error ? 'error' : 'method not offered natively') : '—')} | ${cell(f.join('; ') || 'none')} |`);
+    flags.push({ label, googleUrl: g?.url || null, nativeUrl: n?.url || g?.offer?.merchantUrl || null, flags: f, listing: g?.offer ? { delivery: g.offer.listingDelivery, total: g.offer.listingTotal, note: 'listing estimate for the link\'s location parameter, not an addressed checkout quote' } : null });
   }
   lines.push('', '## Flags by label', '');
-  for (const x of flags) { lines.push(`- **${x.label}**: ${x.flags.join('; ') || 'no mechanical flags'}${x.listing ? ` (listing: delivery ${x.listing.delivery}, total ${x.listing.total})` : ''}`); }
+  for (const x of flags) { lines.push(`- **${x.label}** (${page('Google', x.googleUrl)} · ${page('Native', x.nativeUrl)}): ${x.flags.join('; ') || 'no mechanical flags'}${x.listing ? ` (listing: delivery ${x.listing.delivery}, total ${x.listing.total})` : ''}`); }
   lines.push('', 'Flags are mechanical comparisons. Verdicts against prior claims, owner routing, and sheet notes are written by the agent per references/owner-routing.md.');
   const out = path.join(dir, 'report.md'); fs.writeFileSync(out, lines.join('\n') + '\n'); fs.writeFileSync(path.join(dir, 'flags.json'), JSON.stringify(flags, null, 2));
   console.log(out);
@@ -294,6 +335,6 @@ function xmlText(s) { return s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').re
 function parseArgs(a) { const o = { _: [] }; for (let i = 0; i < a.length; i++) { if (a[i].startsWith('--')) { const k = a[i].slice(2); const v = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; o[k] = v; } else o._.push(a[i]); } return o; }
 function die(msg) { console.error(msg); process.exit(2); }
 
-const cmds = { preflight, links, google, native, report };
-if (!cmds[cmd]) die('usage: ucpqa.mjs <preflight|links|google|native|report> ...  (see SKILL.md)');
+const cmds = { preflight, links, scan, google, native, report };
+if (!cmds[cmd]) die('usage: ucpqa.mjs <preflight|links|scan|google|native|report> ...  (see SKILL.md)');
 Promise.resolve(cmds[cmd]()).catch((e) => { console.error(JSON.stringify({ error: String(e.message || e) })); process.exit(1); });
