@@ -55,7 +55,7 @@ Ask for a **new Google Doc and Sheet** when the test finishes. The skill’s rec
 ## Update the skill
 
 1. Return to this repo’s **Releases** page and read the new release notes.
-2. Download the new installer and repeat the upload steps. Disable the older copy if both appear.
+2. Download the new installer. In **Customize > Skills**, open **ucp-checkout-qa**, choose **⋮ > Replace**, and upload the new zip. Wait for the security scan to finish. Replace keeps one copy; uploading it as a new skill creates a duplicate.
 3. Keep the release tag with your report so another tester knows which version you used.
 
 Downloading a new file does not update the skill already installed in Claude. Share the repository link with coworkers; do not send installers through chat, email, or a separate file share.
