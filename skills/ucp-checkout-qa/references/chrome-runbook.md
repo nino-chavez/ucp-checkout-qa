@@ -46,9 +46,10 @@ Google's order review sits in a pay.google.com frame. Text tools and page script
 3. `zoom` on the dialog. Record product, item price, quantity, shipping method, subtotal, discount, shipping, estimated tax, and total.
 4. Confirm the product and merchant match the scan. If they don't, stop the row as **offer mismatch**.
 5. Read again at about 15 and 30 seconds. Use the last settled reading as `initial`.
-6. **If shipping is $0:** open the shipping method row and choose the same method again, then read. Switch to another method and read. Switch back and read. Close the dialog, click Buy again, and read. Record each step (`reselect`, `switch`, `switchBack`, `reopen`).
-7. **If "We couldn't complete your purchase" appears:** wait 20 seconds and retry once. Keep both attempts.
-8. Close the dialog with its **X**.
+6. **List every shipping method.** Click the shipping method row (it ends in **›**). Record each method name and price, then close the list without changing the selection. If you changed it by mistake, choose the original method again and reread the totals. Never report a method as missing from Google unless you opened this list and it wasn't there.
+7. **If shipping is $0:** open the shipping method row and choose the same method again, then read. Switch to another method and read. Switch back and read. Close the dialog, click Buy again, and read. Record each step (`reselect`, `switch`, `switchBack`, `reopen`).
+8. **If "We couldn't complete your purchase" appears:** wait 20 seconds and retry once. Keep both attempts.
+9. Close the dialog with its **X**.
 
 **Never click** Update card info, Place order, Pay, or anything that changes the payment method. **Never save these screenshots** (`save_to_disk` stays off) and never put them in a report. They show the tester's address, phone, and card ending.
 
