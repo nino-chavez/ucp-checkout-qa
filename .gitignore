@@ -3,3 +3,4 @@
 !skills/ucp-checkout-qa/examples/address.example.json
 ucp-qa-*/
 runs/
+dist/
