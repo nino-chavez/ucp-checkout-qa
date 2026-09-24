@@ -85,3 +85,46 @@ test('unverified merchant link is not labeled as native checkout evidence', () =
     assert.equal(flags[0].merchantUrl, 'https://merchant.example/product');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('item price comparison ignores thousands separators', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ucpqa-price-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'google-big.json'), JSON.stringify({ kind: 'google', label: 'big', url: 'https://www.google.com/search?ibp=oshop', status: 'order-review',
+      offer: { merchantUrl: 'https://merchant.example/p?sku=BB1' },
+      initial: { method: 'Freight', itemPrice: '$1,195.95', qty: 'Qty: 1', shipping: 25, tax: 0, total: 1220.95, methods: ['Freight'] } }));
+    fs.writeFileSync(path.join(dir, 'native-big.json'), JSON.stringify({ kind: 'native', label: 'big', url: 'https://merchant.example/p?sku=BB1',
+      items: [{ sku: 'BB1', qty: 1, price: 1195.95 }], methods: [{ name: 'Freight' }], perMethod: { Freight: { shipping: 25, tax: 0, total: 1220.95 } } }));
+    execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
+    assert.doesNotMatch(fs.readFileSync(path.join(dir, 'report.md'), 'utf8'), /item price differs/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('a merchant link without sku= is flagged as an unpinned variant', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ucpqa-nosku-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'google-r9.json'), JSON.stringify({ kind: 'google', label: 'r9', url: 'https://www.google.com/search?ibp=oshop', status: 'order-review',
+      offer: { merchantUrl: 'https://merchant.example/item' },
+      initial: { method: 'Ground', itemPrice: '$5.95', qty: 'Qty: 1', shipping: 6.95, tax: 0, total: 12.9, methods: ['Ground'] } }));
+    fs.writeFileSync(path.join(dir, 'native-r9.json'), JSON.stringify({ kind: 'native', label: 'r9', url: 'https://merchant.example/item',
+      items: [{ sku: 'X', qty: 1, price: 5.95 }], methods: [{ name: 'Ground' }], perMethod: { Ground: { shipping: 6.95, tax: 0, total: 12.9 } } }));
+    execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
+    assert.match(fs.readFileSync(path.join(dir, 'report.md'), 'utf8'), /variant not pinned/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('--rendered-methods is refused before any browser work', () => {
+  const r = (() => { try { execFileSync(process.execPath, [script, 'native', 'https://merchant.example/p?sku=1', '--rendered-methods'], { encoding: 'utf8', stdio: 'pipe', timeout: 5000 }); return null; } catch (e) { return e; } })();
+  assert.ok(r, 'expected a non-zero exit');
+  assert.match(String(r.stderr), /--rendered-methods is not supported/);
+});
+
+test('the all-link scan labels an unverified merchant link as Merchant, not Native', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ucpqa-scanlabel-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'scan.json'), JSON.stringify([{ rows: [4], url: 'https://www.google.com/search?item=4', status: 'buy-present', offer: { title: 'Cocoa', merchantUrl: 'https://merchant.example/cocoa?sku=C1' } }]));
+    execFileSync(process.execPath, [script, 'report', dir], { timeout: 5000 });
+    const scanSection = fs.readFileSync(path.join(dir, 'report.md'), 'utf8').split('## Checkout comparisons')[0];
+    assert.match(scanSection, /\[Merchant\]\(<https:\/\/merchant\.example\/cocoa\?sku=C1>\)/);
+    assert.doesNotMatch(scanSection, /\[Native\]/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

@@ -6,24 +6,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { Browser, listTargets, sleep, deadline, BASE } from './lib/cdp.mjs';
+import { makeRedactor, parseMoney } from './lib/redact.mjs';
 
 const [cmd, ...rest] = process.argv.slice(2);
 const args = parseArgs(rest);
 const now = () => new Date().toISOString();
 
 // ---------- redaction ----------
-let REDACT = [];
+let redact = makeRedactor();
 function loadAddress(file) {
   if (!file) return null;
   const a = JSON.parse(fs.readFileSync(file, 'utf8'));
-  REDACT = [a.address1, a.address2, a.phone, a.email, a.phone && a.phone.replace(/\D/g, '')].filter((x) => x && String(x).length > 3);
+  redact = makeRedactor(a);
   return a;
-}
-function redact(v) {
-  let s = JSON.stringify(v);
-  for (const r of REDACT) s = s.split(r).join('[redacted]');
-  s = s.replace(/\+?1?[ (.-]*\d{3}[ ).-]*\d{3}[ .-]*\d{4}/g, '[phone]').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email]');
-  return JSON.parse(s);
 }
 function emit(obj, outDir, name) {
   const clean = redact(obj);
@@ -144,7 +139,7 @@ function xlsxRows(file, tab) {
 // ---------- google ----------
 const REVIEW = 'buyflow2';
 async function google() {
-  deadline(420000, 'google');
+  deadline(args['price-methods'] ? 1200000 : 420000, 'google');
   const url = args._[0]; if (!url || args.authuser === undefined) die('usage: google <buy-url> --authuser N [--label row12] [--out dir] [--steps auto|always|never] [--alt "<method>"] [--price-methods]');
   loadAddress(args.address);
   const b = await Browser.connect(); const p = await b.newPage();
@@ -227,8 +222,9 @@ async function pick(p, current, target) {
 // ---------- native (BigCommerce storefront, isolated guest context) ----------
 async function native() {
   deadline(360000, 'native');
+  if (args['rendered-methods']) die('--rendered-methods is not supported: the rendered method list sits behind the shipping-address form. Read it by hand; see references/protocol.md, "Reading the rendered native method list".');
   const url = args._[0]; const addr = loadAddress(args.address);
-  if (!url || !addr) die('usage: native <storefront-product-url-with-?sku=> --address addr.json [--label row12] [--out dir] [--method "<Google selected method>"] [--rendered-methods]');
+  if (!url || !addr) die('usage: native <storefront-product-url-with-?sku=> --address addr.json [--label row12] [--out dir] [--method "<Google selected method>"]');
   const b = await Browser.connect(); const ctx = await b.newIsolatedContext(); const p = await b.newPage({ contextId: ctx });
   const res = { kind: 'native', label: args.label || new URL(url).hostname, url, startedAt: now() };
   try {
@@ -252,25 +248,12 @@ async function native() {
     Object.assign(res, quote);
     await p.goto(`${res.origin}/checkout`, 8000);
     res.renderedSummary = await p.eval(`return (document.querySelector('aside')||document.body).innerText.replace(/\\n+/g,' | ').slice(0,500)`);
-    if (args['rendered-methods']) res.renderedMethods = await renderedMethods(p, addr);
   } catch (e) { res.error = String(e.message || e); }
   finally {
     try { res.cartAfterCleanup = await p.eval(`for(const c of await fetch('/api/storefront/carts',{credentials:'include'}).then(r=>r.json())) for(const i of c.lineItems.physicalItems) await fetch('/api/storefront/carts/'+c.id+'/items/'+i.id,{method:'DELETE',credentials:'include'}); return (await fetch('/api/storefront/carts',{credentials:'include'}).then(r=>r.json())).length`); } catch {}
     res.finishedAt = now(); await p.close(); await b.disposeContext(ctx); b.close(); emit(res, args.out, `native-${res.label}.json`);
   }
 }
-// Only when Google's method list and the API list disagree: the rendered list sits behind the
-// email step, the newsletter box is pre-checked, and entering an email starts an abandoned-cart trail.
-async function renderedMethods(p, addr) {
-  if (!addr.email) return 'skipped: no email in address file';
-  const typed = await p.eval(`const e=document.querySelector('#email'); if(!e) return 'selector not found: #email'; const s=document.querySelector('#shouldSubscribe'); if(s&&s.checked) s.click(); e.focus(); return 'ok'`);
-  if (typed !== 'ok') return typed;
-  await p.s('Input.insertText', { text: addr.email });
-  await p.eval(`const s=document.querySelector('#shouldSubscribe'); if(s&&s.checked) s.click(); const b=document.querySelector('#checkout-customer-continue')||[...document.querySelectorAll('.checkout-step--customer button[type=submit]')][0]; b&&b.click(); return true`);
-  await sleep(9000);
-  return p.eval(`const o=[...document.querySelectorAll('.shippingOptions-container li, .shippingOptions-container .form-checklist-item')].map(e=>e.innerText.replace(/\\n+/g,' ').trim()); return o.length?o:'no rendered options (shipping address form shown instead?)'`);
-}
-
 // ---------- report ----------
 function report() {
   const dir = args._[0]; if (!dir) die('usage: report <results-dir> [--plan plan.json]');
@@ -286,8 +269,8 @@ function report() {
   if (fs.existsSync(scanFile)) {
     const scanned = JSON.parse(fs.readFileSync(scanFile, 'utf8'));
     lines.push('', '## All-link scan', '', 'This is a page and Buy-control check only. Confirm the intended product and variant before checkout.', '',
-      '| Sheet rows | Google product | Merchant link | Page result | Visible title |', '|---|---|---|---|---|');
-    for (const item of scanned) lines.push(`| ${cell(item.rows?.join(', '))} | ${page('Google', item.url)} | ${page('Native', item.offer?.merchantUrl)} | ${cell(item.status)} | ${cell(item.offer?.title)} |`);
+      '| Sheet rows | Google product | Merchant link (unverified) | Page result | Visible title |', '|---|---|---|---|---|');
+    for (const item of scanned) lines.push(`| ${cell(item.rows?.join(', '))} | ${page('Google', item.url)} | ${page('Merchant', item.offer?.merchantUrl)} | ${cell(item.status)} | ${cell(item.offer?.title)} |`);
   }
   lines.push('', '## Checkout comparisons', '',
     '| Label | Product pages | Google status | Initial Google (method · ship · tax · total) | After switch-back | Native (same method) | Flags |', '|---|---|---|---|---|---|---|');
@@ -308,7 +291,9 @@ function report() {
     const cmp = (gr) => { const nv = gr && n?.perMethod?.[gr.method]; if (!gr || !nv) return; if (Math.abs(gr.total - nv.total) > 0.005 || Math.abs(gr.tax - nv.tax) > 0.005) f.push(`${gr.method}: Google ${money(gr.total)} vs native ${money(nv.total)} (tax ${money(gr.tax)} vs ${money(nv.tax)})`); };
     if (init?.shipping !== 0) cmp(init); cmp(back); cmp(g?.steps?.switch);
     if (g?.methodPrices) for (const r of Object.values(g.methodPrices)) cmp(r);
-    if (n?.items && init?.itemPrice && !init.itemPrice.includes(String(n.items[0]?.price))) f.push(`item price differs: Google ${init.itemPrice} vs native $${n.items[0]?.price}`);
+    if (n?.items?.length && init?.itemPrice && Math.abs(parseMoney(init.itemPrice) - Number(n.items[0].price)) > 0.005) f.push(`item price differs: Google ${init.itemPrice} vs native $${n.items[0]?.price}`);
+    const linkUrl = n?.url || g?.offer?.merchantUrl;
+    if (n && linkUrl && !/[?&]sku=/.test(linkUrl)) f.push('variant not pinned: the merchant link has no sku=, so confirm the native cart item matches the Google offer');
     const requestedSku = n?.url && new URL(n.url).searchParams.get('sku');
     if (requestedSku && n?.items?.length && !n.items.some((item) => item.sku === requestedSku)) f.push(`native cart SKU differs from product link: requested ${requestedSku}; cart ${n.items.map((item) => item.sku).join(', ')}`);
     if (n && !n.error && !n.items?.length) f.push('native cart item not verified');
