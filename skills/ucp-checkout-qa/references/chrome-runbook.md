@@ -4,12 +4,12 @@ Use this runner when Claude in Chrome tools are available (`navigate`, `computer
 
 The test rules are the same for both runners: [protocol.md](protocol.md) covers evidence and verdicts, and [owner-routing.md](owner-routing.md) covers owners. The field names in protocol.md come from the command-line runner; record the same readings here under the same names.
 
-Proven on 2026-09-23 against the KONG Halloween Snuzzles Ghost product: the screenshot reading and the store quote both matched the command-line run to the cent. That was one product. Treat screenshot readings as needing a second look whenever a number drives a finding.
+Proven on 2026-09-23 against the KONG Halloween Snuzzles Ghost product: the screenshot reading and the store quote both matched the command-line run to the cent. On 2026-09-24 the run-owned cleanup and the rendered checkout read were checked on the same product; the page showed the same $11.90 as the API, and cleanup left an unrelated cart item in place. That is still one product. Treat screenshot readings as needing a second look whenever a number drives a finding.
 
 ## Setup check (first run, and whenever Buy is missing)
 
 1. Claude in Chrome is connected. Ask the tester to run this in a dedicated Chrome profile, such as "UCP testing". Keeping it separate from their own shopping avoids leftover merchant carts and signed-in store accounts.
-2. Open one Buy link. **Buy** must appear under Buying options. If only **Visit site** shows, the Chrome profile's main Google account is not on the UCP allowlist. Ask the tester to sign in with the approved account, or add `&authuser=<n>` to the link for that account's position (0 is the first account). Record this as **Test setup**, never as a product defect.
+2. Open one Buy link. **Buy** should appear under Buying options. If only **Visit site** shows, check the account first: ask which Google account is on the UCP allowlist and whether it is the one signed in. If it isn't, have the tester sign in with it, or add `&authuser=<n>` to the link for that account's position (0 is the first account), and record the first result as **Test setup**. If the approved account is signed in and Buy is still missing, the button alone doesn't say why. The offer may not be UCP-enabled. Record the link as **blocked: Buy absent**, with owner **Unresolved**.
 3. Reports to Google need the Google Drive connector (`create_file`, `read_file_content`). Without it, deliver the reports in chat.
 
 Claude in Chrome asks the tester to allow each new site the first time. Tell them to expect prompts for google.com, pay.google.com and each merchant store.
@@ -67,12 +67,25 @@ const c = await fetch('/api/storefront/carts', {credentials:'include'}).then(r =
 
 If the result is not a list, the site is not a BigCommerce storefront API. If `addButton` is false, the theme isn't Stencil. In either case, record native as **blocked** and say why.
 
-**Add one item and quote every method.** Replace the `ADDRESS` values with the tester's details, and don't repeat them in chat.
+**Add one item and record what the test added.** Keep the returned `cartId` and `itemIds`; cleanup removes only those.
 
 ```js
+const before = new Set((await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json()))
+  .flatMap(c => c.lineItems.physicalItems.map(i => i.id)));
 const q = document.querySelector('input[name="qty[]"]'); if (q) q.value = '1';
 document.querySelector('#form-action-addToCart').click(); await new Promise(r => setTimeout(r, 5000));
+const carts = await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json());
+const added = carts.flatMap(c => c.lineItems.physicalItems.filter(i => !before.has(i.id)).map(i => ({cartId:c.id, id:i.id, sku:i.sku, qty:i.quantity})));
+({ cartId: added[0]?.cartId, itemIds: added.map(i => i.id), added })
+```
+
+If `added` is empty, or holds more than one line, stop and report it. Don't quote a cart you can't account for.
+
+**Quote every method.** Replace the `ADDRESS` values with the tester's details and don't repeat them in chat. Set `METHOD` to the method Google preselected; the snippet leaves the cart on that method (or the store's recommended one) for the page check below.
+
+```js
 const cart = (await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json()))[0];
+const METHOD = '';
 const ADDRESS = {first_name:'', last_name:'', address1:'', address2:'', city:'', state_or_province_code:'', postal_code:'', country_code:'US', phone:''};
 const json = {method:'', credentials:'include', headers:{'Content-Type':'application/json'}};
 const lineItems = cart.lineItems.physicalItems.map(i => ({itemId:i.id, quantity:i.quantity}));
@@ -84,27 +97,36 @@ for (const o of opts) {
     {...json, method:'PUT', body: JSON.stringify({shippingOptionId: o.id})}).then(r => r.json());
   perMethod[o.description] = {shipping: u.shippingCostTotal, tax: u.taxTotal, total: u.grandTotal};
 }
-({ items: cart.lineItems.physicalItems.map(i => ({sku:i.sku, qty:i.quantity, price:i.salePrice})),
+const fin = opts.find(o => o.description === METHOD) || opts.find(o => o.isRecommended) || opts[0];
+if (fin) await fetch(`/api/storefront/checkouts/${cart.id}/consignments/${con.id}`,
+  {...json, method:'PUT', body: JSON.stringify({shippingOptionId: fin.id})});
+({ renderedFor: fin?.description, items: cart.lineItems.physicalItems.map(i => ({sku:i.sku, qty:i.quantity, price:i.salePrice})),
    methods: opts.map(o => ({name:o.description, cost:o.cost, recommended:o.isRecommended})), perMethod })
 ```
 
-Check that `items` holds exactly one line: the scanned SKU, quantity 1. If a method list differs from Google's, confirm it on the rendered page ([protocol.md](protocol.md), "Reading the rendered native method list").
+Check that `items` holds exactly one line: the scanned SKU, quantity 1.
 
-**Clean up.** Always run this, even after an error. The result must be 0.
+**Read the store's checkout page.** `navigate` to `<origin>/checkout`, wait about 5 seconds, and `get_page_text`. In the order summary, record subtotal, shipping, tax, and total for `renderedFor`, as `renderedSummary`. Compare them with `perMethod[renderedFor]`. If the summary can't be read, label the native comparison **API-only** in the report. If the method lists differ from Google's, confirm the native list on the page as well ([protocol.md](protocol.md), "Reading the rendered native method list").
+
+**Clean up.** Always run this, even after an error. Put in the `cartId` and `itemIds` recorded when the item was added. It removes only those items and leaves anything else alone.
 
 ```js
-for (const c of await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json()))
-  for (const i of c.lineItems.physicalItems)
-    await fetch(`/api/storefront/carts/${c.id}/items/${i.id}`, {method:'DELETE', credentials:'include'});
-(await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json())).length
+const CART_ID = '', ITEM_IDS = [];
+for (const id of ITEM_IDS)
+  await fetch(`/api/storefront/carts/${CART_ID}/items/${id}`, {method:'DELETE', credentials:'include'});
+const left = (await fetch('/api/storefront/carts', {credentials:'include'}).then(r => r.json()))
+  .flatMap(c => c.lineItems.physicalItems.map(i => ({id:i.id, sku:i.sku})));
+({ removed: ITEM_IDS, stillOurs: left.filter(i => ITEM_IDS.includes(i.id)), otherItems: left.filter(i => !ITEM_IDS.includes(i.id)) })
 ```
+
+`stillOurs` must be empty. If `otherItems` isn't empty, leave those items and tell the tester. If the test's item IDs were never recorded, for example because the add step failed, don't delete anything; report that cleanup needs a person.
 
 ## 4. Record, then judge
 
 After each row, write the readings into one results block in chat, before you read any prior claims:
 
 ```text
-row | merchant | product | Google initial (method, ship, tax, total) | $0 steps | native (method, ship, tax, total) | methods Google / native | flags
+row | merchant | product | Google initial (method, ship, tax, total) | $0 steps | native API (method, ship, tax, total) | native page total or API-only | methods Google / native | flags
 ```
 
 Then apply [protocol.md](protocol.md) (evidence labels, verdicts, limits) and [owner-routing.md](owner-routing.md), and write the report as SKILL.md's **Deliverable** section describes. Screenshot readings count as **Observed in this run**. Name the method in the limits: "Google totals read from screen."

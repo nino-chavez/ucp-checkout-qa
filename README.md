@@ -113,13 +113,10 @@ For initial $0 shipping, the test reselects the method, switches away and back, 
 
 ## Current limits
 
-These issues remain open in the merged runners. The distribution instructions do not fix them.
+These issues remain open in the merged runners. The three Chrome-runner issues listed in the v0.1.0-pilot.1 release notes are fixed on `main` and ship in the next release.
 
 | Runner | Open issue | Required correction |
 |---|---|---|
-| Chrome | Cleanup deletes every physical cart item, including an unrelated item added during the run | Delete only items created by the test |
-| Chrome | The runbook treats **Visit site** as proof of an account problem | Check the account; leave unresolved Buy absence blocked |
-| Chrome | The normal native comparison uses API quotes without a rendered checkout summary | Read the selected method and totals on the page, or label the comparison API-only |
 | Command line | Buy selection uses the first matching button; native quantity is fixed at 1 | Verify the selected offer and stop on unsupported quantities before comparing |
 
 The [build plan](decisions/browser-extension-plan.md) records the evidence and remaining pilot checks. The [design files](design/extension-review/index.html) show an optional custom interface with synthetic data. No custom extension has been built.

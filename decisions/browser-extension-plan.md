@@ -81,7 +81,7 @@ Before coworker handoff, address these runbook findings:
 - The setup text treats Visit site as proof of a non-allowlisted account. Check the account first, but keep unresolved Buy absence blocked rather than assigning a cause from that button alone.
 - The normal native path quotes the API without explicitly reading the rendered checkout summary. Restore the intended method and capture its rendered summary, or state that the comparison was API-only. The existing protocol defines both sources.
 
-These are review findings, not fixes already made. The rebuilt ZIP matches the merged source and is a local review artifact. It is not a coworker handoff. Installation and distribution go through the public repo; no GitHub invitation is needed. No pilot release is published as of September 24, 2026.
+Update, September 24, 2026: all three are fixed in the runbook on `main` (run-owned cleanup, account check before blocking, rendered-summary read), after v0.1.0-pilot.1. They were checked live on the KONG product in the Tart test Mac, including an unrelated item added mid-run that cleanup left in place. These were originally review findings, not fixes already made. The rebuilt ZIP matches the merged source and is a local review artifact. It is not a coworker handoff. Installation and distribution go through the public repo; no GitHub invitation is needed. No pilot release is published as of September 24, 2026.
 
 The captured proof establishes screenshot access to one Google review. Its top-page script returned no frame text; that does not establish a universal limitation for every tool version. Historical amounts such as $11.90 are clues, not a future run's ground truth. Recheck prices and addressed quotes each time.
 
